@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Histogram Plot</title>
+<style type="text/css">
+.style1 {
+	text-align: center;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 14pt;
+}
+.style2 {
+	text-align: center;
+}
+.style3 {
+	font-family: "Times New Roman", Times, serif;
+}
+.style4 {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 12pt;
+}
+</style>
+</head>
+
+<body>
+
+<p class="style1"><strong>Histogram Plot</strong></p>
+<hr>
+
+
+<p class="style4">
+
+We used fMRI-fMRI example data-set to demonstrate the plotting of histograms.
+
+Figure 1 will open after you have selected the fusion information
+file. The parameters in the figure 1 are as follows:
+
+<ul>
+
+<li class="style4"> "Groups" - Select at most two groups. </li>
+
+<li class="style4"> "Features" - Select at most two features. </li>
+
+<li class="style4"> "Component" - Select a component of interest. </li>
+
+<li class="style4"> "Z-Threshold" - Z-threshold to be applied on spatial maps. </li>
+
+</ul>
+
+<span class="style3"><font size="3">When you click </font><em><font size="3">Done</font></em><font size="3"> button, Z-threshold is
+applied on the selected component spatial map and voxels are sorted in 
+descending order. This is used as a mask to the original data and cross-task 
+histograms are generated. We calculate cross-task histogram for each subject of 
+a group. Mean histogram is calculated for each group and a group difference 
+histogram (Figure 2) is also calculated. </font></span>
+<p class="style2">Figure 1: GUI for plotting histograms</p>
+<p class="style2">
+<img alt="" src="histogram_plot_gui.jpg" width="569" height="595" /></p>
+<p class="style2">Figure 2: Group difference histogram</p>
+<p class="style2">
+<img alt="" src="histogram_plot.jpg" width="569" height="646" /></p>
+
+<hr>
+</body>
+
+</html>

@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>References</title>
+<style type="text/css">
+.style1 {
+	text-align: center;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 14pt;
+}
+.style2 {
+	text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<p class="style1"><strong>Display Parallel ICA Components</strong></p>
+<hr>
+
+Figure 1 will open after you click <em>
+<a href="fit_paraICA.htm" class="style2">Display</a></em> button and had selected the parameter file. The parameters
+in the display GUI are as follows:
+
+<ul>
+
+<li> "Comp No:" - Component numbers to display. This is dependent
+on the feature you have selected in the feature listbox. This option
+will be disabled when you sort components. </li>
+
+<li> "Feature:" - You can select at most one feature to display.
+This option will be disabled when you sort components. </li>
+
+<li> &quot;Do You Want To Sort Components?&quot; - You have the option to sort components 
+based on correlation. When you select &quot;Yes&quot; for sorting components and click<em> 
+Display</em> (Figure 1) button, components will be sorted based on the correlation. Figure 
+2 shows the results of sorting. When you click on any axes, enlarged view of 
+that plot is shown in a different figure (Figure 3). </li>
+
+<li> &quot;Display Defaults&quot; - <a href="fit_display_defaults.htm" class="style2">
+Spatial map defaults</a> will be shown in a figure window when you 
+click on &quot;Display Defaults&quot; menu.</li>
+
+<li> &quot;Options&quot; - There is an option to select the SNP&#39;s locus file. We have 
+included locus file "LocusNames.txt"
+for the fMRI-gene example data set. Dominant SNP's will be printed to a text
+file having suffix "dominant_snps.txt" when components are
+sorted based on correlation. Dominant SNP's are determined based on
+Z-threshold for SNP's. You can change Z-threshold by changing
+variable SNP_Z_THRESHOLD in "<a href="fit_defaults.htm" class="style2">ica_fuse_defaults.m</a>" file. </li>
+
+</ul>
+
+<p align ="center"> 
+Figure 1: Display GUI </p>
+<p align ="center"> 
+<img alt="" src="fit_paraICA_displayGUI.jpg"></p>
+
+<p align ="center"> 
+Figure 2: Components sorted based on correlation </p>
+<p align ="center"> 
+<img alt="" src="fit_paraICA_sorted_components.jpg"></p>
+
+<p align ="center"> 
+Figure 3: Enlarged view of a spatial map</p>
+<p align ="center"> 
+<img alt="" src="fit_paraICA_enlargedView.jpg"></p>
+
+
+<hr>
+</body>
+
+</html>

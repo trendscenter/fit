@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Run Analysis</title>
+<style type="text/css">
+.style1 {
+	text-align: center;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 14pt;
+}
+.style2 {
+	text-decoration: none;
+}
+.style3 {
+	font-family: "Times New Roman", Times, serif;
+}
+.style4 {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 12pt;
+}
+</style>
+</head>
+
+<body>
+
+<p class="style1"><strong>Run Joint ICA Analysis</strong></p>
+<hr>
+
+<span class="style3"><font size="3">When you click </font> <em>
+<font size="3"><a class="style2" href="fit_jointICA.htm">Run Analysis</a></font></em><a class="style2" href="fit_getting_started.htm"><font size="3"> </font></a><font size="3"> button, a figure window will open to select the fusion information file 
+(*ica_fusion.mat).
+Select the fusion information file and wait for analysis to complete. The steps involved in the analysis are as follows:
+<br />
+
+<ul>
+<li class="style4"> Principal Component Analysis (PCA) - Data will be reduced 
+using PCA. The information about data reduction is stored in a MAT file with the 
+suffix &#39;pca_comb&#39;. First combination is all the
+features stacked together in columns. </li>
+
+<li class="style4"> Independent Component Analysis (ICA) - ICA will be run on 
+the reduced data obtained from the PCA step. The information about ICA is stored 
+in a MAT file with suffix &#39;ica_comb&#39;. </li>
+
+<li class="style4"> Back Reconstruction - Components mixing matrix is multiplied 
+with de-whitening matrix obtained from the PCA step. This will be stored as a 
+MAT file with suffix &#39;br_comb&#39;. </li>
+
+<li class="style4"> Scaling Joint ICA Components: The components obtained after 
+ICA step are in arbitrary units. These will be scaled by doing a multiple 
+regression of components (model) with the original data (observation) of the 
+features. The sign of the component will be flipped depending on the beta weight 
+information. This information is saved as a MAT file with suffix &#39;sc_comb&#39;. </li>
+
+<li class="style4"> Output Files: Joint ICA components will be saved in output 
+files for the respective features with the suffix &#39;joint_comp_ica_feature&#39;. </li>
+</ul>
+
+<strong>Note:</strong>
+<ul>
+
+<li class="style4"> All the analysis information is stored in a log file with 
+suffix &#39;results.log&#39;. After the analysis is done successfully, 
+<a href="fit_display_gui.htm" class="style2">display GUI </a>will open. You can turn off this option by
+setting variable OPEN_DISPLAY_WINDOW to 0 in &#39;<a class="style2" href="fit_defaults.htm">ica_fuse_defaults.m</a>&#39; file. </li>
+
+<li class="style4"> PCA and ICA will be run on combination of features, if you set
+variable OPTIMIZE_FEATURES to &#39;Yes&#39; in &#39;<a class="style2" href="fit_defaults.htm">ica_fuse_defaults.m</a>&#39;
+file. </li>
+
+<li class="style4"> You can run ICA several times by setting variable NUM_RUNS_ICA in 
+<a href="fit_defaults.htm" class="style2">defaults</a>. </li>
+
+</ul>
+
+<hr>
+</body>
+
+</html>
