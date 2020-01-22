@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Optimal Features</title>
+<style type="text/css">
+.style2 {
+	text-align: center;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 12pt;
+}
+.style3 {
+	text-decoration: none;
+}
+.style4 {
+	font-family: "Times New Roman", Times, serif;
+}
+.style5 {
+	font-family: "Times New Roman", Times, serif;
+	font-size: 12pt;
+}
+.style6 {
+	text-align: center;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 14pt;
+}
+</style>
+</head>
+
+<body>
+
+<p class="style6"><strong>Optimal Features</strong></p>
+<hr>
+
+<span class="style4"><font size="3">Before running this utility, set variable OPTIMIZE_FEATURES in '<a class="style3" href="fit_defaults.htm">ica_fuse_defaults.m</a>&#39; 
+to &#39;Yes&#39; and run joint ICA analysis. This will run ICA on different combinations of 
+features in order to identify which combination of features most differentiates 
+the groups. We use fMRI-fMRI example data-set to demonstrate the optimal 
+features. After you click &quot;Optimal Features&quot; in &quot;</font><font size="3"><a class="style3" href="fit_getting_started.htm">Utilities</a>&quot; drop down box, 
+figure 1 will open. The parameters in the figure 1 are as follows:
+
+</font></span>
+
+<ul>
+<li class="style5"> "Select sorting criteria" - "Best" component is determined based on the sorting criteria selected. 
+For spatial divergence sorting criteria information from "Select type of histogram" is used. </li>
+<li> <span class="style5">"Select type of histogram" - There are two options like "Feature" and "Component". 
+</span> 
+<ul>
+<li class="style5"> Feature - &quot;Best&quot; component voxels are sorted in descending order and 
+Z-threshold is applied. This set of voxels is used as a mask to the original 
+data. Cross-task histogram is constructed for each selected group.
+</li> 
+<li class="style5"> Component - "Best" component voxels are sorted in descending order and cross-task histogram 
+is constructed for each selected group. </li>
+</ul>
+</li>
+<li class="style5"> "Select Groups" - Select at most two groups. </li>
+<li class="style5"> "Select Z threshold" - Z-threshold applied on "Best" component when "Feature" histogram is 
+used.</li>
+</ul>
+
+<span class="style4"><font size="3">When you click </font> <em><font size="3">Calculate</font></em><font size="3"> button spatial divergence between 
+the selected groups is calculated using the cross-task histograms.
+The default divergence criteria is "renyi" with alpha = 2. Figure 2 shows the features ranked in
+descending order of their divergence. </font></span>
+
+<p class="style2">
+
+Figure 1: Optimal Features GUI</p>
+<p class="style2">
+
+<img alt="" src="optimal_features_gui.jpg" width="569" height="595" /></p>
+<p class="style2">
+
+Figure 2: Rank features based on spatial divergence between the groups</p>
+<p class="style2">
+
+<img alt="" src="optimal_features.jpg" width="569" height="646" /></p>
+<hr>
+</body>
+
+</html>
