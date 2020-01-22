@@ -31,3 +31,4 @@ fusionFile = ica_fuse_setup_analysis(inputFile);
 
 % Run Analysis
 ica_fuse_run_analysis(fusionFile);
+
