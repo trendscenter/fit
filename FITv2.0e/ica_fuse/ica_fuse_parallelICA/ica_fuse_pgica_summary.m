@@ -25,6 +25,27 @@ loadingFiles = pgicaInfo.loadingFiles;
 numSubjects = pgicaInfo.num_subjects;
 outputFiles = pgicaInfo.outputFiles;
 
+
+modalities = {'sMRI', 'fMRI'};
+try
+    modalities = pgicaInfo.modalities;
+catch
+end
+
+try
+    mask_indices = pgicaInfo.mask_indices;
+catch
+end
+
+
+if (strcmpi(modalities{1}, 'eeg'))
+    
+    meanData = ica_fuse_loadData(pgicaInfo.files{1});
+    xAxis = squeeze(meanData(mask_indices{1}, 1, 1));
+    meanData = mean(ica_fuse_remove_mean(squeeze(meanData(mask_indices{1}, 2, :))), 2);
+    meanData = detrend(meanData(:), 0);
+end
+
 anatomical_file = ANATOMICAL_FILE;
 
 try
@@ -102,7 +123,7 @@ defaultFigPos(2) = 0.5*sz(4) - 0.5*defaultFigPos(4) + 10;
 defaultFigPos(1) = 0.5*sz(3) - 0.5*defaultFigPos(3) + 10;
 
 
-featureNames = {'sMRI', 'fMRI'};
+featureNames = modalities;
 numFeatures = length(loadingFiles);
 loadingCoeff{1} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{1}));
 loadingCoeff{2} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{2}));
@@ -126,7 +147,7 @@ if (~isempty(groupsInfo))
     
 end
 
-pgicaInfo.featureNames = featureNames;
+pgicaInfo.featureNames = modalities;
 
 %% PGICA-ICA Fusion Parameters
 dispParaStr = dispPara(pgicaInfo);
@@ -163,7 +184,7 @@ clear fNs;
 
 clear nG nF;
 
-%% SMRI Components
+%% First Modality Components
 for nFeature = 1:1
     
     axesTitle = ['Mixing Coefficients (', featureNames{nFeature}];
@@ -197,8 +218,38 @@ for nFeature = 1:1
             tmp_slices = slices_in_mm;
         end
         
-        ica_fuse_image_viewer(fullfile(outputDir, outputFiles{nFeature}{nComp}), 'structfile', anat_file, 'threshold', threshold, 'convert_to_zscores', convertToZ, 'image_values', imageValues, ...
-            'slices_in_mm', tmp_slices, 'anatomical_view', anatomical_plane, 'labels', [featureNames{nFeature},  ' Comp ', ica_fuse_returnFileIndex(nComp)], 'axesh', gca);
+        
+        if (strcmpi(modalities{1}, 'smri'))
+            ica_fuse_image_viewer(fullfile(outputDir, outputFiles{nFeature}{nComp}), 'structfile', anat_file, 'threshold', threshold, 'convert_to_zscores', convertToZ, 'image_values', imageValues, ...
+                'slices_in_mm', tmp_slices, 'anatomical_view', anatomical_plane, 'labels', [featureNames{nFeature},  ' Comp ', ica_fuse_returnFileIndex(nComp)], 'axesh', gca);
+            
+        elseif (strcmpi(modalities{1}, 'eeg'))
+            
+            tmpDat = ica_fuse_loadData(outputFiles{nFeature}{nComp});
+            tmpDat = squeeze(tmpDat(:, 2));
+            tmpDat = detrend(tmpDat(:), 0)./std(tmpDat);
+            betas = ica_fuse_regress(meanData, tmpDat);
+            tmpDat = (betas + eps)*tmpDat;
+            tmpDat = [xAxis(:), tmpDat];
+            
+            ica_fuse_plotTimecourse('parent', gca, 'data', tmpDat, 'color', 'm', 'titleColor', 'm', 'title', [featureNames{nFeature},  ' Comp ', ica_fuse_returnFileIndex(nComp)], ...
+                'YAxisLocation', 'left', 'meanData', meanData, 'groupcompdata', []);
+            ica_fuse_legend('Mean', 'Component');
+            xlabel('Time');
+            yh = ylabel('Data Units', 'units', 'normalized');
+            yhpos = get(yh, 'position');
+            set(yh, 'position', [1-yhpos(1), yhpos(2), yhpos(3)]);
+            
+        else
+            
+            tmpDat = ica_fuse_loadData(outputFiles{nFeature}{nComp});
+            tmpDat = squeeze(tmpDat(:, 2));
+            tmpDat = tmpDat./std(tmpDat);
+            % Plot SNPs
+            ica_fuse_plotSNP('data', tmpDat, 'parent', gca, 'xlabel', 'SNPs', 'ylabel', ...
+                'Z-scores', 'titleColor', 'm', 'color', 'm', 'title', [featureNames{nFeature},  ' Comp ', ica_fuse_returnFileIndex(nComp)]);
+            
+        end
         
     end
     
@@ -291,19 +342,20 @@ for n = 1:size(allGroups, 1)
         
         fH = figure('color', 'w', 'position', defaultFigPos);
         gH = axes('parent', fH, 'units', 'normalized', 'position', [0.1, 0.1, 0.8, 0.8]);
-        cmap = hsv(64);
+        %cmap = hsv(64);
         
-        cmap_inds = round(linspace(1, size(cmap, 1), length(tvals)));
-        for nB = 1:length(tvals)
-            bH = bar(nB, tvals(nB), 0.4, 'facecolor', cmap(cmap_inds(nB), :));
-            hold on;
-        end
-        set(gH, 'Xtick', []);
+        %         % cmap_inds = round(linspace(1, size(cmap, 1), length(tvals)));
+        %         for nB = 1:length(tvals)
+        %             bH = bar(nB, tvals(nB), 0.4, 'facecolor', 'b');
+        %             hold on;
+        %         end
+        bH = bar(tvals, 0.4, 'facecolor', 'b');
+        set(gH, 'Xticklabel', legendStr);
         
         ylabel('T-values', 'parent', gH);
         xlabel('Components', 'parent', gH);
         title(tmpR.title, 'parent', gH);
-        legend(legendStr, 'Location', 'bestoutside');
+        %legend(legendStr, 'Location', 'bestoutside');
         
         
         
@@ -327,11 +379,11 @@ function plot_bars(gH, vals, xlabelstr, ylabelstr, titlestr, legendstr)
 
 
 %gH = axes('parent', fH, 'units', 'normalized', 'position', [0.1, 0.1, 0.8, 0.8]);
-cmap = hsv(64);
+%cmap = [0,0,1];
 
-cmap_inds = round(linspace(1, size(cmap, 1), length(vals)));
+%cmap_inds = round(linspace(1, size(cmap, 1), length(vals)));
 for nB = 1:length(vals)
-    bH = bar(nB, vals(nB), 0.4, 'facecolor', cmap(cmap_inds(nB), :));
+    bH = bar(nB, vals(nB), 0.4, 'facecolor', 'b');
     hold on;
 end
 set(gH, 'Xtick', []);
@@ -476,10 +528,10 @@ end
 
 dispParaStr{1} = '....................................................';
 dispParaStr{end + 1} = ['Modalities: ', ica_fuse_formatStr(pgicaInfo.featureNames, ',')];
-dispParaStr{end + 1} = ['Number of sMRI components: ', num2str(pgicaInfo.numComp1)];
+dispParaStr{end + 1} = ['Number of ', pgicaInfo.featureNames{1}, ' components: ', num2str(pgicaInfo.numComp1)];
 dispParaStr{end + 1} = ['Number of fMRI components (first level, second level): (', num2str(pgicaInfo.numComp2(1)), ', ', num2str(pgicaInfo.numComp2(2)), ')'];
 dispParaStr{end + 1} = ['Number of subjects: ', num2str(pgicaInfo.num_subjects)];
-dispParaStr{end + 1} = ['Masks (sMRI and fMRI): ', maskFile_modality1, ', ', maskFile_modality2];
+dispParaStr{end + 1} = ['Masks (', pgicaInfo.featureNames{1}, ' and fMRI): ', maskFile_modality1, ', ', maskFile_modality2];
 dispParaStr{end + 1} = ['Anatomical file: ', pgicaInfo.anatomical_file];
 dispParaStr{end + 1} = ['Slice Plane: ', upper(pgicaInfo.anatomical_plane(1)), pgicaInfo.anatomical_plane(2:end)];
 dispParaStr{end + 1} = ['Image values: ', upper(pgicaInfo.image_values(1)), pgicaInfo.image_values(2:end)];

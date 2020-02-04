@@ -20,9 +20,37 @@ if (~exist('param_file', 'var'))
     if (isempty(outputDir))
         error('Output analysis directory is not selected');
     end
+    
+    
+    dlg_title = 'Enter modality name (first modality)';
+    
+    numParameters = 1;
+    
+    inputText(numParameters).promptString = 'Enter first modality name';
+    inputText(numParameters).uiType = 'popup';
+    inputText(numParameters).answerString = {'sMRI', 'Gene', 'EEG', 'Behavioral'};
+    inputText(numParameters).answerType = 'string';
+    inputText(numParameters).tag = 'modality1_name';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 1;
+    
+    answer = ica_fuse_inputDialog('inputtext', inputText, 'Title', dlg_title, 'handle_visibility', 'on');
+    
+    if (isempty(answer))
+        error('Modality name is not selected');
+    end
+    
+    modality1_name = lower(answer{1});
+    
+    
+    filterPattern = '*.asc;*.dat;*.txt';
+    if (strcmpi(modality1_name, 'smri'))
+        filterPattern = '*.nii;*.img';
+    end
+    
     prefix = '';
     modality1_files =  ica_fuse_selectEntry('typeEntity', 'file', 'title', ...
-        'Select sMRI files for all subjects ...', 'typeSelection', 'multiple', 'filter', '*.nii');
+        'Select First Modality files for all subjects ...', 'typeSelection', 'multiple', 'filter', filterPattern);
     drawnow;
     if (isempty(modality1_files))
         error('First modality files are not selected');
@@ -30,12 +58,15 @@ if (~exist('param_file', 'var'))
     pgicaInfo.files{1} = modality1_files;
     
     modality2_files =  ica_fuse_selectEntry('typeEntity', 'file', 'title', ...
-        'Select fMRI files for all subjects ...', 'typeSelection', 'multiple', 'filter', '*.nii');
+        'Select fMRI files (second modality) for all subjects ...', 'typeSelection', 'multiple', 'filter', '*.nii');
     drawnow;
     if (isempty(modality2_files))
         error('Second modality files are not selected');
     end
     pgicaInfo.files{2} = modality2_files;
+    
+    pgicaInfo.modalities = {modality1_name, 'fmri'};
+    
 else
     outputDir = fileparts(param_file);
     if (isempty(outputDir))
@@ -171,7 +202,7 @@ val = get(hObject, 'value');
 str=get(hObject, 'string');
 
 if (~strcmpi(str(val, :), 'default mask'))
-    maskFile = ica_fuse_selectEntry('typeEntity', 'file', 'title', 'Select mask file ...', 'typeSelection', 'single', 'filter', '*.nii');
+    maskFile = ica_fuse_selectEntry('typeEntity', 'file', 'title', 'Select binary mask file ...', 'typeSelection', 'single', 'filter', '*.nii;*.asc;*.txt');
     
     drawnow;
     if (isempty(maskFile))

@@ -54,12 +54,24 @@ diary(results_file);
 mask1 = pgicaInfo.maskFile_modality1;
 mask2 = pgicaInfo.maskFile_modality2;
 
+modalities = {'smri', 'fmri'};
+try
+    modalities = pgicaInfo.modalities;
+catch
+end
+
 
 if (isempty(mask1))
     disp('Calculating mask for modality 1 ...');
-    mask1 = ica_fuse_generateMask(pgicaInfo.files{1}, 'multiplier', PGICA_ICA_DEFAULTS.mask.smri_mult, 'threshold', ...
-        PGICA_ICA_DEFAULTS.mask.smri_threshold, 'prefix', [pgicaInfo.prefix, '_smri'], 'corr_threshold', ...
-        PGICA_ICA_DEFAULTS.mask.smri_corr_threshold, 'outputdir', outputDir, 'disp_corr', 0);
+    
+    if (strcmpi(modalities{1}, 'smri'))
+        mask1 = ica_fuse_generateMask(pgicaInfo.files{1}, 'multiplier', PGICA_ICA_DEFAULTS.mask.smri_mult, 'threshold', ...
+            PGICA_ICA_DEFAULTS.mask.smri_threshold, 'prefix', [pgicaInfo.prefix, '_smri'], 'corr_threshold', ...
+            PGICA_ICA_DEFAULTS.mask.smri_corr_threshold, 'outputdir', outputDir, 'disp_corr', 0);
+    else
+        tmp_dat = ica_fuse_loadData(deblank(pgicaInfo.files{1}(1,:)));
+        mask1 = (1:length(tmp_dat));
+    end
     
     disp('Calculating mask for modality 2 ...');
     mask2 = ica_fuse_generateMask(pgicaInfo.files{2}, 'multiplier', PGICA_ICA_DEFAULTS.mask.fmri_mult, 'threshold', ...
@@ -69,24 +81,39 @@ if (isempty(mask1))
 else
     
     mask1 = ica_fuse_loadData(mask1);
+    
+    if (~strcmpi(modalities{1}, 'smri'))
+        mask1 = squeeze(mask1(:, 2));        
+    end
+    
     mask2 = ica_fuse_loadData(mask2);
     
 end
 
 
-VStruct = ica_fuse_spm_vol(deblank(pgicaInfo.files{1}(1,:)));
-VStruct = VStruct(1);
-VStruct.fname = fullfile(outputDir, [pgicaInfo.prefix, '_smriMask.nii']);
+if (strcmpi(modalities{1}, 'smri'))
+    VStruct = ica_fuse_spm_vol(deblank(pgicaInfo.files{1}(1,:)));
+    VStruct = VStruct(1);
+    VStruct.fname = fullfile(outputDir, [pgicaInfo.prefix, '_smriMask.nii']);
+    ica_fuse_write_vol(VStruct, mask1);
+    %mask1 = find(abs(mask1) > eps);
+else
+    VStruct = ica_fuse_getVol(which('nsingle_subj_T1_2_2_5.nii'));
+    VStruct = VStruct(1);
+end
+
+mask1 = find(abs(mask1) > eps);
+
+VStruct.dt(1) = 4;
+
 VFunc = ica_fuse_spm_vol(deblank(pgicaInfo.files{2}(1,:)));
 VFunc = VFunc(1);
 VFunc.fname = fullfile(outputDir, [pgicaInfo.prefix, '_fmriMask.nii']);
-VStruct.dt(1) = 4;
+
 VFunc.dt(1) = 4;
 
-ica_fuse_write_vol(VStruct, mask1);
 ica_fuse_write_vol(VFunc, mask2);
 
-mask1 = find(abs(mask1) > eps);
 mask2 = find(abs(mask2) > eps);
 
 pcaDir = [pgicaInfo.prefix, '_pca'];
@@ -96,14 +123,22 @@ if (exist(fullfile(outputDir, pcaDir), 'dir') ~= 7)
 end
 
 
+pgicaInfo.mask_indices = {mask1, mask2};
+
 %% Load smri data
 disp('Loading modality 1 data ...');
 featureInfo.files = pgicaInfo.files{1};
-featureInfo.modality = 'smri';
+featureInfo.modality = lower(modalities{1});
 featureInfo.feature_name = 'Feature';
 mask(1).ind = mask1(:);
 smri_data = ica_fuse_applyMask(featureInfo, mask);
 smri_data = smri_data.data;
+
+if (~strcmpi(modalities{1}, 'gene'))
+    % don't remove mean for gene data
+    smri_data = ica_fuse_remove_mean(smri_data', 0)';
+end
+
 [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(smri_data, numComp1);
 fileName = fullfile(pcaDir, [pgicaInfo.prefix, '_pgica_ica_pca_feature1.mat']);
 save(fullfile(outputDir, fileName), 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM');
@@ -131,7 +166,7 @@ for nF = 1:size(files, 1)
     tmp = ica_fuse_applyMask(featureInfo, mask);
     tmp = tmp.data;
     Timepoints(nF) = size(tmp, 1);
-    [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(tmp, numComp2(1));
+    [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(ica_fuse_remove_mean(tmp', 0)', numComp2(1));
     fileName = fullfile(pcaDir, [pgicaInfo.prefix, '_pgica_ica_pca_feature2_sub', ica_fuse_returnFileIndex(nF), '.mat']);
     %     if (exist(fullfile(outputDir, 'sub'), 'dir') ~a= 7)
     %         mkdir(outputDir, [pgicaInfo.prefix, '_pca']);
@@ -219,17 +254,23 @@ mixing_coeff{2} = D2;
 %% write feature nifti files
 smri_files = pgicaInfo.files{1};
 fmri_files = pgicaInfo.files{2};
-V = ica_fuse_getVol(deblank(smri_files(1,:)));
+
+if (strcmpi(modalities{1}, 'smri'))
+    V = ica_fuse_getVol(deblank(smri_files(1,:)));
+else
+    V = VStruct;
+end
+
 V = V(1);
 V.n(1)=1;
 V.dt(1) = 4;
 
-[fileSet1, loadingFiles{1}] = writeNiftis(V, whitesig_smri, mixing_coeff{1}, mask1, [pgicaInfo.prefix, '_feature1'], outputDir);
+[fileSet1, loadingFiles{1}] = writeNiftis(V, whitesig_smri, mixing_coeff{1}, mask1, [pgicaInfo.prefix, '_feature1'], outputDir, modalities{1});
 
 V = ica_fuse_getVol(deblank(fmri_files(1,:)));
 V = V(1);
 V.dt(1) = 4;
-[fileSet2, loadingFiles{2}] = writeNiftis(V, S_group, mixing_coeff{2}, mask2, [pgicaInfo.prefix, '_feature2'], outputDir);
+[fileSet2, loadingFiles{2}] = writeNiftis(V, S_group, mixing_coeff{2}, mask2, [pgicaInfo.prefix, '_feature2'], outputDir, modalities{2});
 
 VV = repmat(V, num_pc_fmri_group, 1);
 
@@ -354,18 +395,25 @@ icatb_runAnalysis(sesInfo, 2);
 cd(outputDir);
 
 
-function [outputFiles, loadingFiles] = writeNiftis(V, S, A, mask1, prefix, outputDir)
+function [outputFiles, loadingFiles] = writeNiftis(V, S, A, mask1, prefix, outputDir, modality)
 %% Write Niftis
 
 
 outputFiles = cell(1, size(S, 1));
 for nS = 1:size(S, 1)
-    fileName = [prefix, '_comp_', ica_fuse_returnFileIndex(nS), '.nii'];
-    tmp = zeros(V.dim(1:3));
-    tmp(mask1) = squeeze(S(nS, :));
-    V.fname = fullfile(outputDir, fileName);
+    if (strcmpi(modality, 'smri') || strcmpi(modality, 'fmri'))
+        fileName = [prefix, '_comp_', ica_fuse_returnFileIndex(nS), '.nii'];
+        tmp = zeros(V.dim(1:3));
+        tmp(mask1) = squeeze(S(nS, :));
+        V.fname = fullfile(outputDir, fileName);
+        ica_fuse_write_vol(V, tmp);
+    else
+        tmp = squeeze(S(nS, :));
+        fileName = [prefix, '_comp_', ica_fuse_returnFileIndex(nS), '.asc'];
+        save(fullfile(outputDir, fileName), 'tmp', '-ascii');
+    end
+    
     outputFiles{nS} = fileName;
-    ica_fuse_write_vol(V, tmp);
 end
 
 
