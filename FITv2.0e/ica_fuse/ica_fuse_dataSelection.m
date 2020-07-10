@@ -120,12 +120,12 @@ if ~isempty(inputFile)
         error(['Check the modality variable in the file: ', inputFile]);
     end
     
-    for nInput = 1:length(answersInput)
-        if ~(strcmpi(answersInput{nInput}, 'fmri') || strcmpi(answersInput{nInput}, 'eeg') || strcmpi(answersInput{nInput}, 'smri'))
-            error('Error:Modality', ['Unrecognized modality (%s) in file:%s.\nCurrently available  modalities are fmri, eeg and smri.'], ...
-                answersInput{nInput}, inputFile);
-        end
-    end
+%     for nInput = 1:length(answersInput)
+%         if ~(strcmpi(answersInput{nInput}, 'fmri') || strcmpi(answersInput{nInput}, 'eeg') || strcmpi(answersInput{nInput}, 'smri'))
+%             error('Error:Modality', ['Unrecognized modality (%s) in file:%s.\nCurrently available  modalities are fmri, eeg and smri.'], ...
+%                 answersInput{nInput}, inputFile);
+%         end
+%     end
     
     % get the group names
     for nGroup = 1:numGroups
