@@ -11,17 +11,27 @@ for nFeature = 1:length(featureInfo)
     length_ind = length(find(ind ~= 0));
     if strcmpi(featureInfo(nFeature).modality, 'fmri') || strcmpi(featureInfo(nFeature).modality, 'smri')
         % get data for each feature
-        tempV = ica_fuse_spm_vol(featureInfo(nFeature).files);
-        currentData = zeros(length_ind, length(tempV));
-        % Loop over files
-        for nFiles = 1:length(tempV)
-            temp = ica_fuse_read_vols(tempV(nFiles));
-            temp(isnan(temp)) = 0;
-            temp = temp(ind);
-            currentData(:, nFiles) = temp(:);
+        [~, pp, extn] = fileparts(icatb_parseExtn(deblank(featureInfo(nFeature).files(1, :))));
+        if (strcmpi(extn, '.img') || strcmpi(extn, '.nii'))
+            tempV = ica_fuse_spm_vol(featureInfo(nFeature).files);
+            
+            currentData = zeros(length_ind, length(tempV));
+            % Loop over files
+            for nFiles = 1:length(tempV)
+                temp = ica_fuse_read_vols(tempV(nFiles));
+                temp(isnan(temp)) = 0;
+                temp = temp(ind);
+                currentData(:, nFiles) = temp(:);
+            end
+            xAxis = 0;
+        else
+            currentData = getCurrentData(featureInfo(nFeature));
+            xAxis = squeeze(currentData(:, 1, 1));
+            % get the y axis from ascii file
+            currentData = squeeze(currentData(:, 2, :));
         end
         % End loop over files
-        xAxis = 0;
+        
     else
         %currentData = featureInfo(nFeature).data;
         currentData = getCurrentData(featureInfo(nFeature));
@@ -31,16 +41,16 @@ for nFeature = 1:length(featureInfo)
         if length(ind) > length(yAxis)
             error(['Check the mask for ', featureInfo(nFeature).modality, ' data']);
         end
-
+        
         xAxis = xAxis(ind, :);
         yAxis = yAxis(ind, :);
         clear currentData;
         currentData = yAxis;
         clear yAxis;
     end
-
+    
     currentData = currentData';
-
+    
     dataN(nFeature).data = currentData;
     dataN(nFeature).xAxis = xAxis;
     dataN(nFeature).files = featureInfo(nFeature).files;
