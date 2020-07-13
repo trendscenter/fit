@@ -36,19 +36,27 @@ if isempty(mask_files)
     for nFeature = 1:numFeatures
         
         if strcmpi(featureInfo(nFeature).modality, 'fmri') || strcmpi(featureInfo(nFeature).modality, 'smri')
-            tempV = ica_fuse_spm_vol(featureInfo(nFeature).files);
-            % Loop over files
-            for nFiles = 1:length(tempV)
-                temp = ica_fuse_read_vols(tempV(nFiles));
-                temp(isnan(temp)) = 0;
-                temp = (temp ~= 0);
-                if (nFiles == 1)
-                    mask_ind = temp;
-                else
-                    mask_ind = mask_ind & temp;
+            
+            [~, pp, extn] = fileparts(icatb_parseExtn(deblank(featureInfo(nFeature).files(1, :))));
+            if (strcmpi(extn, '.img') || strcmpi(extn, '.nii'))
+                tempV = ica_fuse_spm_vol(featureInfo(nFeature).files);
+                % Loop over files
+                for nFiles = 1:length(tempV)
+                    temp = ica_fuse_read_vols(tempV(nFiles));
+                    temp(isnan(temp)) = 0;
+                    temp = (temp ~= 0);
+                    if (nFiles == 1)
+                        mask_ind = temp;
+                    else
+                        mask_ind = mask_ind & temp;
+                    end
                 end
+                % End loop over files
+                
+            else
+                tmp = ica_fuse_loadData(deblank(featureInfo(nFeature).files(1, :)));
+                mask_ind = (1:size(tmp, 1));
             end
-            % End loop over files
             
             maskIndices(nFeature).ind = mask_ind;
             clear mask_ind;
