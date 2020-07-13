@@ -44,46 +44,58 @@ else
         P = P(file_numbers, :);
     end
     
-    % treat file as an ascii file
-    for ii = 1:size(P, 1)
-        
-        currentFile = deblank(P(ii, :));
-        % load ascii file
-        temp = load('-ascii', currentFile);
-        
-        % Make data a column vector
-        if prod(size(temp)) == length(temp)
-            if size(temp, 1) == 1
-                temp = temp';
-            end
-        end
-        % end for making data a column vector
-        
-        % First column will be time or scans followed by data
-        if size(temp, 2) > 1
-            dat = temp(:, 1:2);
-        else
-            % add scans as first column
-            dat = [(1:1:length(temp))', temp];
-        end
-        
-        clear temp;
-        
-        size_dat = size(dat);
-        
-        % check the dimensions of each file with that of first file
-        if ii == 1
-            check_size = size_dat;
-            data = zeros(size(dat, 1), 2, size(P, 1));
-        else
-            if length(find((check_size == size_dat) > 0)) ~= length(size_dat)
-                error(['Dimensions of file ', currentFile, ' doesn''t match that of first file ', deblank(P(1, :))]);
-            end
-        end
-        
-        data(:, :, ii) = dat;
+    
+    dat = ica_fuse_load_ascii_or_mat(P);
+    dat = squeeze(dat);
+    if (size(dat, 2) ~= 2)
+        data = zeros(size(dat, 1), 2, size(dat, 2));
+        data(:, 1, :) = repmat((1:size(dat, 1))', 1, size(dat, 2));
+        data(:, 2, :) = dat;
         clear dat;
+    else
+        data = dat;
     end
+    
+%     % treat file as an ascii file
+%     for ii = 1:size(P, 1)
+%         
+%         currentFile = deblank(P(ii, :));
+%         % load ascii file
+%         temp = load('-ascii', currentFile);
+%         
+%         % Make data a column vector
+%         if prod(size(temp)) == length(temp)
+%             if size(temp, 1) == 1
+%                 temp = temp';
+%             end
+%         end
+%         % end for making data a column vector
+%         
+%         % First column will be time or scans followed by data
+%         if size(temp, 2) > 1
+%             dat = temp(:, 1:2);
+%         else
+%             % add scans as first column
+%             dat = [(1:1:length(temp))', temp];
+%         end
+%         
+%         clear temp;
+%         
+%         size_dat = size(dat);
+%         
+%         % check the dimensions of each file with that of first file
+%         if ii == 1
+%             check_size = size_dat;
+%             data = zeros(size(dat, 1), 2, size(P, 1));
+%         else
+%             if length(find((check_size == size_dat) > 0)) ~= length(size_dat)
+%                 error(['Dimensions of file ', currentFile, ' doesn''t match that of first file ', deblank(P(1, :))]);
+%             end
+%         end
+%         
+%         data(:, :, ii) = dat;
+%         clear dat;
+ %    end
     % end loop over files
     
     V(1).dim = size(data, 1);

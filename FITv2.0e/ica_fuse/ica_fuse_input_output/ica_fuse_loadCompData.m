@@ -151,7 +151,9 @@ else
         numSubjects = featureInfo.numSubjects;
         
         % Input data
-        input_data = ica_fuse_loadData(inputFiles(1:numSubjects(1), :));
+        input_data = ica_fuse_loadData(inputFiles);
+        input_data = input_data(:, :, 1:numSubjects(1));
+        %input_data = ica_fuse_loadData(inputFiles(1:numSubjects(1), :));
         
         % Mean of Y data
         meanData = mean(squeeze(input_data(mask_ind, 2, :)), 2);
