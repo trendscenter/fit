@@ -340,13 +340,13 @@ if (dataSelectionOption == 2)
                 
                 tmp = ica_fuse_rename_4d_file(tmp);
                 
-                if (nFeature == 1)
-                    oldFileCount = size(tmp, 1);
-                else
-                    if (oldFileCount ~= size(tmp, 1))
-                        error(['No. of files is not the same between the features for group ', groupsData(nGroup).name]);
-                    end
-                end
+%                 if (nFeature == 1)
+%                     oldFileCount = size(tmp, 1);
+%                 else
+%                     if (oldFileCount ~= size(tmp, 1))
+%                         error(['No. of files is not the same between the features for group ', groupsData(nGroup).name]);
+%                     end
+%                 end
                 
                 for ii = 1:size(tmp, 1)
                     groupsData(nGroup).feature(nFeature).files(ii).name = deblank(tmp(ii, :));
