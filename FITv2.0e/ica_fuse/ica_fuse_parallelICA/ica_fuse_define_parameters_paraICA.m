@@ -93,7 +93,7 @@ inputText(numParameters).answerType = 'numeric';
 inputText(numParameters).tag = 'numComp';
 inputText(numParameters).enable = 'inactive';
 inputText(numParameters).value = 1;
-inputText(numParameters).read_from_file = 0;
+inputText(numParameters).read_from_file = 1;
 inputText(numParameters).executeCallback = 1;
 % 
 % numParameters = numParameters + 1;

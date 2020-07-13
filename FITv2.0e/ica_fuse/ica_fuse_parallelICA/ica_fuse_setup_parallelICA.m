@@ -58,6 +58,7 @@ if ~isempty(inputFile)
     inputData = ica_fuse_read_variables(inputFile, keywd, 'directory');
     % get the output directory field
     outputDir = getfield(inputData, keywd);
+    
     clear inputData;
     % set the input text for controls
     
@@ -152,9 +153,9 @@ set(findobj(InputHandle, 'tag', 'maskFile'), 'callback', {@selectMaskCallback, I
 set(findobj(InputHandle, 'tag', 'estimate_components'), 'callback', {@dimEstCallback, InputHandle});
 
 % number of components callback
-set(findobj(InputHandle, 'tag', 'modality1_numComp'), 'callback', {@numCompCallback, InputHandle});
+%set(findobj(InputHandle, 'tag', 'modality1_numComp'), 'callback', {@numCompCallback, InputHandle});
 
-set(findobj(InputHandle, 'tag', 'SNP_numComp'), 'callback', {@numCompCallback, InputHandle});
+set(findobj(InputHandle, 'tag', 'numComp'), 'callback', {@numCompCallback, InputHandle});
 
 set(findobj(InputHandle, 'tag', 'type_parallel_ica'), 'callback', {@typeParallelICACallback, InputHandle});
 
@@ -693,6 +694,16 @@ function numCompCallback(hObject, event_data, handles)
 % get handles data
 handles_data = get(handles, 'userdata');
 paraICAInfo = handles_data.paraICAInfo;
+inputFile = handles_data.inputFile;
+if (~isempty(inputFile))
+    keywd = 'numComp';
+    inputData = ica_fuse_read_variables(inputFile, keywd, 'integer');
+    % get the numcomp field
+    numComp = getfield(inputData, keywd);
+    set(hObject, 'string', num2str(numComp));
+    clear inputData;
+end
+
 compTag = get(hObject, 'tag');
 compStr = get(hObject, 'string');
 try
