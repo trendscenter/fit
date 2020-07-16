@@ -11,7 +11,7 @@ for nFeature = 1:length(featureInfo)
     length_ind = length(find(ind ~= 0));
     if strcmpi(featureInfo(nFeature).modality, 'fmri') || strcmpi(featureInfo(nFeature).modality, 'smri')
         % get data for each feature
-        [~, pp, extn] = fileparts(icatb_parseExtn(deblank(featureInfo(nFeature).files(1, :))));
+        [~, pp, extn] = fileparts(ica_fuse_parseExtn(deblank(featureInfo(nFeature).files(1, :))));
         if (strcmpi(extn, '.img') || strcmpi(extn, '.nii'))
             tempV = ica_fuse_spm_vol(featureInfo(nFeature).files);
             
