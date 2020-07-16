@@ -39,41 +39,54 @@ for nF = 1:length(featureNames)
             [fileIndex] = ica_fuse_returnFileIndex(nComp);
             % Current component
             currentData = aveComp{nF}(nComp, :);
-            % write image data
-            if strcmpi(MRI_DATA_FILTER(2:end), '.img')
-                fileToWrite = [outFile, 'feature_', num2str(nF), '_', fileIndex, MRI_DATA_FILTER(2:end)];
-            else
-                fileToWrite = [outFile, 'feature_', num2str(nF), MRI_DATA_FILTER(2:end)];
-            end
             
-            % Mask indices
-            ind = mask_ind(nF).ind;
+            tmpImF = ica_fuse_parseExtn(deblank(dataInfo(1).feature(nF).files(1).name(1, :)));
             
-            newData = zeros(size(ind));
-            
-            newData(ind) = currentData;
-            
-            % Get the volume of the first file
-            compV = ica_fuse_getVol(deblank(dataInfo(1).feature(nF).files(1).name(1, :)), 1);
-            
-            compV.descrip = ['Feature ', featureNames{nF}];
-            
-            compV.fname = fullfile(outputDir, fileToWrite);
-            
-            if strcmpi(MRI_DATA_FILTER(2:end), '.img')
-                compV.n(1) = 1;
-            else
-                compV.n(1) = nComp;
-            end
-            
-            ica_fuse_write_vol(compV, newData);
-            
-            clear newData;
-            
-            if strcmpi(MRI_DATA_FILTER(2:end), '.img')
+            if ~strcmpi(tmpImF(end-3:end), '.img') &&  ~strcmpi(tmpImF(end-3:end), '.nii')
+                
+                fileToWrite = [outFile, 'feature_', num2str(nF), '_', fileIndex, '.asc'];
+                save(fullfile(outputDir, fileToWrite), 'currentData', '-ascii');
                 compFiles(nComp).name = fileToWrite;
+                
             else
-                compFiles(1).name = fileToWrite;
+                
+                % write image data
+                if strcmpi(MRI_DATA_FILTER(2:end), '.img')
+                    fileToWrite = [outFile, 'feature_', num2str(nF), '_', fileIndex, MRI_DATA_FILTER(2:end)];
+                else
+                    fileToWrite = [outFile, 'feature_', num2str(nF), MRI_DATA_FILTER(2:end)];
+                end
+                
+                % Mask indices
+                ind = mask_ind(nF).ind;
+                
+                newData = zeros(size(ind));
+                
+                newData(ind) = currentData;
+                
+                % Get the volume of the first file
+                compV = ica_fuse_getVol(deblank(dataInfo(1).feature(nF).files(1).name(1, :)), 1);
+                
+                compV.descrip = ['Feature ', featureNames{nF}];
+                
+                compV.fname = fullfile(outputDir, fileToWrite);
+                
+                if strcmpi(MRI_DATA_FILTER(2:end), '.img')
+                    compV.n(1) = 1;
+                else
+                    compV.n(1) = nComp;
+                end
+                
+                ica_fuse_write_vol(compV, newData);
+                
+                clear newData;
+                
+                if strcmpi(MRI_DATA_FILTER(2:end), '.img')
+                    compFiles(nComp).name = fileToWrite;
+                else
+                    compFiles(1).name = fileToWrite;
+                end
+                
             end
             
         end

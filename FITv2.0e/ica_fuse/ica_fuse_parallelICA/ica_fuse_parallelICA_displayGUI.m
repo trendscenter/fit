@@ -621,6 +621,14 @@ try
         end
         % end for getting feature files
         
+        [~,~,extn_modality] = fileparts(ica_fuse_parseExtn(deblank(compFiles(1,:))));
+        
+        if strcmpi(checkModality, 'fmri') 
+            if (~strcmpi(extn_modality, '.img') && ~(strcmpi(extn_modality, '.nii')))
+                checkModality = 'none';
+            end
+        end
+        
         if strcmpi(checkModality, 'fmri') || strcmpi(checkModality, 'smri')
             
             [compData, anatData, meanData, groupCompData, meanDataLegend, groupCompLegend, text_left_right, ...
@@ -641,6 +649,7 @@ try
             minICAIm = zeros(1, length(selectedComp(nFeature).comp));
             minInterval = 0;
             maxInterval = 0;
+            colorbarLim = [];
             
             structDIM = HInfo.DIM;
             % Apply display parameters
@@ -654,7 +663,7 @@ try
             cm = ica_fuse_getColormap(imageValues, 1);
             clear anatData;
             
-        elseif (strcmpi(checkModality, 'gene') || strcmpi(checkModality, 'behavioral'))
+        elseif (strcmpi(checkModality, 'gene') || strcmpi(checkModality, 'behavioral') || strcmpi(checkModality, 'none'))
             
             % Selected Gene components
             compData = ica_fuse_loadData(compFiles, selectedComp(nFeature).comp);

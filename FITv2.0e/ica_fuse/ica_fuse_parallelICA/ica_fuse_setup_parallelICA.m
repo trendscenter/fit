@@ -385,16 +385,18 @@ try
     dataInfo = paraICAInfo.setup_analysis.dataInfo;
     numGroups = length(dataInfo);
     numFeatures = length(dataInfo(1).feature);
-    if isfield(dataInfo, 'numSubjects')
-        numSubjects = dataInfo.numSubjects;
-    else
-        numSubjects = zeros(1, length(dataInfo));
-        for nn = 1:numGroups
-            tempFiles = char(dataInfo(nn).feature(1).files.name);
-            timePoints = ica_fuse_get_countTimePoints(tempFiles);
-            numSubjects(nn) = timePoints;
-        end
-    end
+    
+    
+    %     if isfield(dataInfo, 'numSubjects')
+    %         numSubjects = dataInfo.numSubjects;
+    %     else
+    %         numSubjects = zeros(1, length(dataInfo));
+    %         for nn = 1:numGroups
+    %             tempFiles = char(dataInfo(nn).feature(1).files.name);
+    %             timePoints = ica_fuse_get_countTimePoints(tempFiles);
+    %             numSubjects(nn) = timePoints;
+    %         end
+    %     end
     
     featureNames = cellstr(char(dataInfo(1).feature.name));
     
@@ -414,7 +416,7 @@ try
     
     paraICAInfo.setup_analysis.numGroups = numGroups;
     paraICAInfo.setup_analysis.numFeatures = numFeatures;
-    paraICAInfo.setup_analysis.numSubjects = numSubjects;
+    %paraICAInfo.setup_analysis.numSubjects = numSubjects;
     
     % Set figure data
     cd(paraICAInfo.setup_analysis.outputDir);
@@ -719,8 +721,8 @@ end
 
 if isfield(paraICAInfo.setup_analysis, 'numSubjects')
     numSubjects = paraICAInfo.setup_analysis.numSubjects;
-    if numComp > numSubjects
-        error(['Number of components (', num2str(numComp), ...
+    if min(numComp) > numSubjects
+        error(['Number of components (', num2str(min(numComp)), ...
             ') is greater than the number of data-sets (', num2str(numSubjects), ')']);
     end
 end

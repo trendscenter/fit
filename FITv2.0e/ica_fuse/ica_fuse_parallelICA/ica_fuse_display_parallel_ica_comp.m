@@ -235,8 +235,11 @@ for nA = 1:numAxes
         if strcmpi(dataStruct.feature(nA - 1).modality, 'eeg')
             userdata(countData).xlabel = 'Time';
             userdata(countData).ylabel = 'Data Units';
-        else
+        elseif strcmpi(dataStruct.feature(nA - 1).modality, 'gene')
             userdata(countData).xlabel = 'SNPs';
+            userdata(countData).ylabel = 'Z-score';
+        else
+            userdata(countData).xlabel = '';
             userdata(countData).ylabel = 'Z-score';
         end
         % Figure data

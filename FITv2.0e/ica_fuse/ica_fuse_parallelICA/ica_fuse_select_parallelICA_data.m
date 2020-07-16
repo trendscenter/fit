@@ -129,7 +129,7 @@ else
     inputData = ica_fuse_read_variables(inputFile, keywds, {'cell', 'cell', 'cell'});
     groupNamings = getfield(inputData, 'groupNames'); % group names
     featureNamings = getfield(inputData, 'featureNames'); % feature names
-    modalities = getfield(inputData, 'modality'); % modalities        
+    modalities = getfield(inputData, 'modality'); % modalities
     
     clear inputData;
     
@@ -253,7 +253,7 @@ if (dataSelectionOption == 2)
                 
                 if isempty(tmp)
                     error(['No files passed for group ', dataInfo(nGroup).name, ' feature ', dataInfo(nGroup).feature(nFeature).name]);
-                end                                
+                end
                 
                 if (size(tmp, 1) == 1)
                     [tmp_path, tmpF, extn] = fileparts(tmp);
@@ -261,6 +261,7 @@ if (dataSelectionOption == 2)
                     if isempty(tmp)
                         error(['Files not found for (', fullfile(tmp, [tmpF, extn]), ')']);
                     end
+                    tmp = ica_fuse_fullFile('files', tmp, 'directory', tmp_path);
                 end
                 
                 tmp = ica_fuse_rename_4d_file(tmp);
@@ -364,14 +365,18 @@ numSubjects = zeros(1, length(dataInfo));
 % % Modality 1 and Modality 2 files
 for nn = 1:numGroups
     tempFiles = str2mat(dataInfo(nn).feature(1).files.name);
-    numSubjects(nn) = size(tempFiles, 1);
+    dd=ica_fuse_loadData(tempFiles);
+    numSubjects(nn) = size(dd, length(size(dd)));
+    clear dd;
     modality1_files(nn).name = tempFiles;
     modality2_files(nn).name = str2mat(dataInfo(nn).feature(2).files.name);
 end
 
 timePoints = sum(numSubjects);
 
-size_data = size(str2mat(modality2_files.name), 1);
+dd=ica_fuse_loadData(char(modality2_files.name));
+size_data = size(dd, length(size(dd)));
+%size_data = size(str2mat(modality2_files.name), 1);
 
 if size_data ~= timePoints
     error('Error:Data', ['Number of subjects of ', dataInfo(1).feature(1).modality,  ' data (%d) doesn''t match with the ', dataInfo(1).feature(2).modality, ...
@@ -380,8 +385,8 @@ end
 
 
 % Select locus names
-temp = ica_fuse_loadData(deblank(modality2_files(1).name(1, :)), 1);
-numTimePoints = size(temp, 1);
+% temp = ica_fuse_loadData(deblank(modality2_files(1).name(1, :)), 1);
+% numTimePoints = size(temp, 1);
 
 
 function [groupStr] = getNaming(numGroups, dlgTitle)
