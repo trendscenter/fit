@@ -4,7 +4,7 @@ function [dataN] = ica_fuse_applyMask(featureInfo, mask_ind)
 ica_fuse_defaults;
 global EEG_DATA_INDICES;
 
-dataN = repmat(struct('data', [], 'xAxis', [], 'files', [], 'feature_name', []), 1, length(featureInfo));
+dataN = repmat(struct('data', [], 'xAxis', [], 'files', [], 'feature_name', [], 'modality', []), 1, length(featureInfo));
 
 for nFeature = 1:length(featureInfo)
     ind = mask_ind(nFeature).ind; % Mask indices for the corresponding feature
@@ -55,6 +55,7 @@ for nFeature = 1:length(featureInfo)
     dataN(nFeature).xAxis = xAxis;
     dataN(nFeature).files = featureInfo(nFeature).files;
     dataN(nFeature).feature_name = featureInfo(nFeature).feature_name;
+    dataN(nFeature).modality = featureInfo(nFeature).modality;
     clear xAxis;
     clear currentData;
 end
