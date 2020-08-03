@@ -274,7 +274,7 @@ if (dataSelectionOption == 2)
         
         isMRI = strcmpi(allModalities, 'fmri') | strcmpi(allModalities, 'smri');
         
-        fileTypes(isMRI) = {'image'};
+        fileTypes(isMRI) = {'any'};
         
         tmp_files = ica_fuse_ui_select_data('title', 'Select data for fusion', 'num_subjects', ...
             numGroups, 'num_sessions', numFeatures, 'filter_string', '*.img;*.nii;*.asc', 'type_file_selection', 'multiple', 'fileType', fileTypes, ...
@@ -611,17 +611,17 @@ for nGroup = 1:num_groups
     end
     
     % loop over number of features
-    for nFeature = 1:numFeatures
-        currentP = answer_file_pattern{nFeature};
-        if strcmpi(groupsData(nGroup).feature(nFeature).modality, 'fmri') || ...
-                strcmpi(groupsData(nGroup).feature(nFeature).modality, 'smri')
-            
-            if ~(strcmpi(currentP(end-3:end), '.img') || strcmpi(currentP(end-3:end), '.nii') )
-                error(['Image format for group ', groupsData(nGroup).name, ' feature ',  ...
-                    groupsData(nGroup).feature(nFeature).name, ' must be .img or .nii']);
-            end
-        end
-    end
+%     for nFeature = 1:numFeatures
+%         currentP = answer_file_pattern{nFeature};
+%         if strcmpi(groupsData(nGroup).feature(nFeature).modality, 'fmri') || ...
+%                 strcmpi(groupsData(nGroup).feature(nFeature).modality, 'smri')
+%             
+%             if ~(strcmpi(currentP(end-3:end), '.img') || strcmpi(currentP(end-3:end), '.nii') )
+%                 error(['Image format for group ', groupsData(nGroup).name, ' feature ',  ...
+%                     groupsData(nGroup).feature(nFeature).name, ' must be .img or .nii']);
+%             end
+%         end
+%     end
     % end for loop over number of features
     
     answerFileP(nGroup).name = answer_file_pattern;
