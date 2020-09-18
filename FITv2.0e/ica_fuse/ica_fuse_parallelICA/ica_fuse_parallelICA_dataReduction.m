@@ -16,7 +16,7 @@ end
 for nModality = 1:length(modalities)
     fprintf('\n');
     currentData = featureData(nModality).data;
-    if strcmpi(modalities{nModality}, 'fmri')
+    if (strcmpi(modalities{nModality}, 'fmri') || strcmpi(modalities{nModality}, 'smri'))
         currentData = currentData';
         disp(['Removing mean for feature ', featureData(nModality).feature_name, '...']);
         % Remove mean of fmri data for each subject
