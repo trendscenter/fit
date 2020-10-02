@@ -4,7 +4,7 @@ function [numSubjects] = ica_fuse_countSubjects(dataInfo)
 numSubjects = zeros(1, length(dataInfo));
 for nGroup = 1:length(dataInfo)
     tmpFile = char(dataInfo(nGroup).feature(1).files.name);
-    [~, pp, extn] = fileparts(icatb_parseExtn(deblank(tmpFile(1, :))));
+    [~, pp, extn] = fileparts(ica_fuse_parseExtn(deblank(tmpFile(1, :))));
     if (strcmpi(extn, '.img') || strcmpi(extn, '.nii'))
         temp = ica_fuse_rename_4d_file(tmpFile);
         numSubjects(nGroup) = size(temp, 1);
