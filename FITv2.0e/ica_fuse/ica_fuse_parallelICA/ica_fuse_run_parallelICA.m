@@ -240,7 +240,7 @@ try
     
     % ICA Output file
     icaFile = [output_prefix, '_', PARALLEL_ICA_ICA_FILE, '.mat'];
-    ica_fuse_save(fullfile(outputDir, icaFile), 'aveComp', 'loadingCoeff', 'avecorr', 'corrIndices');
+    ica_fuse_save(fullfile(outputDir, icaFile), 'aveComp', 'loadingCoeff');
     
     fprintf('\n');
     

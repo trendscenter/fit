@@ -43,6 +43,8 @@ if ~isfield(paraICAInfo, 'run_analysis')
 end
 
 output_prefix = paraICAInfo.run_analysis.prefix;
+avecorr = paraICAInfo.run_analysis.average_correlation;
+corrIndices = paraICAInfo.run_analysis.corrIndices;
 
 %% Get information from paraICAInfo file
 [d, fN, extn] = fileparts(paraICAInfo.run_analysis.icaFile);
@@ -240,9 +242,11 @@ for nM = 1:length(featureNames)
     %% Plot correlation matrix of modality
     plotTitle = ['Correlation Matrix Of ', featureNames{nM}];
     graphicsHandle = ica_fuse_getGraphics(plotTitle, 'normal', ['corr_matrix_modality', num2str(nM)], 'on');
+    set(graphicsHandle, 'resize', 'on');
     axesPos = [0.125 0.125 0.75 0.75];
     axesH = axes('parent', graphicsHandle, 'units', 'normalized', 'position', axesPos, 'fontunits', UI_FONT_UNITS, 'fontname', UI_FONT_NAME, 'fontSize', UI_FONT_SIZE);
     image(abs(squeeze(corr_modality(:, :, nM))), 'parent', axesH, 'CDataMapping', 'scaled');
+    colormap(jet(64));
     title(plotTitle, 'color',  UI_FG_COLOR, 'HorizontalAlignment', 'center', 'fontunits', UI_FONT_UNITS, 'fontname', UI_FONT_NAME, 'fontSize', UI_FONT_SIZE);
     xlabel('Subjects', 'parent', axesH);
     ylabel('Subjects', 'parent', axesH);
@@ -262,8 +266,8 @@ for nM = 1:length(featureNames)
     end
     
     set(colorbarHandle, 'YColor', UI_FG_COLOR);
-    set(colorbarHandle, 'XColor', [0, 0, 0]);
-    set(colorbarHandle, 'XTick', []);
+    %set(colorbarHandle, 'XColor', [0, 0, 0]);
+    %set(colorbarHandle, 'XTick', []);
     
 end
 %% End loop over modalities
