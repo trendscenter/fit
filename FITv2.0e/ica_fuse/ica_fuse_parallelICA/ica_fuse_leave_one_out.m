@@ -49,7 +49,7 @@ corrIndices = paraICAInfo.run_analysis.corrIndices;
 %% Get information from paraICAInfo file
 [d, fN, extn] = fileparts(paraICAInfo.run_analysis.icaFile);
 icaFile = fullfile(outputDir, [fN, extn]);
-load(icaFile);
+load(icaFile, 'aveComp');
 [sorted_values, inds] = sort(abs(avecorr));
 inds = inds(end:-1:1);
 bestComp = {aveComp{1}(inds(1), :), aveComp{2}(corrIndices(inds(1)), :)};
