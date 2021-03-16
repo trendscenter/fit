@@ -1,4 +1,4 @@
-function ica_fuse_leave_one_out(parallel_ica_fusion_file)
+function ica_fuse_leave_one_out(parallel_ica_fusion_file, numSubLeft)
 % Function to do leave one out evaluation
 
 %% Load defaults
@@ -42,6 +42,14 @@ if ~isfield(paraICAInfo, 'run_analysis')
     error('Please run the parallel ICA analysis in order to do leave one out evaluation');
 end
 
+
+if (~exist('numSubLeft', 'var'))
+    numSubLeft = ica_fuse_inputdlg2('No. of subjects to exclude in each analysis', 'Leave out analysis', 1, {'1'}, 'off');
+    numSubLeft = str2num(numSubLeft{1});
+end
+
+drawnow;
+
 output_prefix = paraICAInfo.run_analysis.prefix;
 avecorr = paraICAInfo.run_analysis.average_correlation;
 corrIndices = paraICAInfo.run_analysis.corrIndices;
@@ -49,7 +57,7 @@ corrIndices = paraICAInfo.run_analysis.corrIndices;
 %% Get information from paraICAInfo file
 [d, fN, extn] = fileparts(paraICAInfo.run_analysis.icaFile);
 icaFile = fullfile(outputDir, [fN, extn]);
-load(icaFile, 'aveComp');
+load(icaFile,  'aveComp');
 [sorted_values, inds] = sort(abs(avecorr));
 inds = inds(end:-1:1);
 bestComp = {aveComp{1}(inds(1), :), aveComp{2}(corrIndices(inds(1)), :)};
@@ -139,16 +147,37 @@ origData = featureData;
 origReference = reference;
 numOfSub = length(reference);
 
-% Initialise average components
-modality1_aveComp = zeros(length(bestComp{1}), numOfSub);
-modality2_aveComp = zeros(length(bestComp{2}), numOfSub);
 
-corr_between_modalities = zeros(1, numOfSub);
+%%
+
+numSets = ceil(numOfSub/numSubLeft);
+
+% Initialise average components
+modality1_aveComp = zeros(length(bestComp{1}), numSets);
+modality2_aveComp = zeros(length(bestComp{2}), numSets);
+
+corr_between_modalities = zeros(1, numSets);
+
+setEnd = 0;
 
 %% Loop over subjects
-for nSub = 1:numOfSub
+for nSet = 1:numSets
     
-    sub_included = find((1:numOfSub) ~= nSub);
+%     setStart = setEnd + 1; %% comment Sabin
+%     setEnd = setEnd + numSubLeft; %% comment Sabin
+%     if (nSet == numSets) %% comment Sabin
+%         setEnd = numOfSub; %% comment Sabin
+%     end comment Sabin
+    sub_included = ones(1, numOfSub);
+    %sub_included(setStart:setEnd) = 0; comment Sabin
+    permN = randperm(numOfSub);%% comment Sabin
+    sub_Exclude = permN(1:numSubLeft); %%comment Sabin
+%     display('Subjects Excluded:')
+%     disp(sub_Exclude)
+%     keyboard
+    sub_included(sub_Exclude)=0; %%
+    sub_included = find(sub_included == 1);
+    % sub_included = find((1:numOfSub) ~= nSet); comment Sabin
     
     for nM = 1:length(origData)
         featureData(nM).data = origData(nM).data(sub_included, :);
@@ -176,8 +205,8 @@ for nSub = 1:numOfSub
     [modality2_comp, best_comp_corr2] = best_corr_comp(aveComponents{2}, bestComp{2});
     
     % Store the average components
-    modality1_aveComp(:, nSub) = sign(best_comp_corr1)*(aveComponents{1}(modality1_comp, :))';
-    modality2_aveComp(:, nSub) = sign(best_comp_corr2)*(aveComponents{2}(modality2_comp, :))';
+    modality1_aveComp(:, nSet) = sign(best_comp_corr1)*(aveComponents{1}(modality1_comp, :))';
+    modality2_aveComp(:, nSet) = sign(best_comp_corr2)*(aveComponents{2}(modality2_comp, :))';
     
     % Compute correlation between linked between modality 1 and modality 2 %
     a = loadingCoeff{1}(:, modality1_comp);
@@ -191,7 +220,7 @@ for nSub = 1:numOfSub
     %
     
     a = ica_fuse_corr(a(:), b(:));
-    corr_between_modalities(nSub) = a;
+    corr_between_modalities(nSet) = a;
     
     clear a b;
     
@@ -201,7 +230,7 @@ end
 fprintf('\n');
 
 %% Correlation matrix of modalities
-corr_modality = zeros(numOfSub, numOfSub, 2);
+corr_modality = zeros(numSets, numSets, 2);
 
 disp('Correlation less than 0.6 is set to zero in correlation matrix (corr_modality)');
 
@@ -229,8 +258,8 @@ disp(['Leave one out evaluation results are saved in file ', resultsFile]);
 fprintf('\n');
 
 disp('The following are the variables in the results file:');
-disp(['1. corr_modality - Correlation matrix of size ', num2str(numOfSub), ' X ', num2str(numOfSub), ' X 2 where third dimension refers to modalities']);
-disp(['2. corr_between_modalities - Correlation between modalities of size 1 X ', num2str(numOfSub)]);
+disp(['1. corr_modality - Correlation matrix of size ', num2str(numSets), ' X ', num2str(numSets), ' X 2 where third dimension refers to modalities']);
+disp(['2. corr_between_modalities - Correlation between modalities of size 1 X ', num2str(numSets)]);
 disp(['3. modality1_aveComp - Average component of modality 1 of size ', num2str(length(bestComp{1})), ' X ', num2str(numOfSub)]);
 disp(['4. modality2_aveComp - Average component of modality 2 of size ', num2str(length(bestComp{2})), ' X ', num2str(numOfSub)]);
 
@@ -242,14 +271,12 @@ for nM = 1:length(featureNames)
     %% Plot correlation matrix of modality
     plotTitle = ['Correlation Matrix Of ', featureNames{nM}];
     graphicsHandle = ica_fuse_getGraphics(plotTitle, 'normal', ['corr_matrix_modality', num2str(nM)], 'on');
-    set(graphicsHandle, 'resize', 'on');
     axesPos = [0.125 0.125 0.75 0.75];
     axesH = axes('parent', graphicsHandle, 'units', 'normalized', 'position', axesPos, 'fontunits', UI_FONT_UNITS, 'fontname', UI_FONT_NAME, 'fontSize', UI_FONT_SIZE);
     image(abs(squeeze(corr_modality(:, :, nM))), 'parent', axesH, 'CDataMapping', 'scaled');
-    colormap(jet(64));
     title(plotTitle, 'color',  UI_FG_COLOR, 'HorizontalAlignment', 'center', 'fontunits', UI_FONT_UNITS, 'fontname', UI_FONT_NAME, 'fontSize', UI_FONT_SIZE);
-    xlabel('Subjects', 'parent', axesH);
-    ylabel('Subjects', 'parent', axesH);
+    xlabel('Sets', 'parent', axesH);
+    ylabel('Sets', 'parent', axesH);
     set(axesH, 'YColor', UI_FG_COLOR, 'XColor', UI_FG_COLOR);
     axis(axesH, 'tight');
     
@@ -266,8 +293,8 @@ for nM = 1:length(featureNames)
     end
     
     set(colorbarHandle, 'YColor', UI_FG_COLOR);
-    %set(colorbarHandle, 'XColor', [0, 0, 0]);
-    %set(colorbarHandle, 'XTick', []);
+    set(colorbarHandle, 'XColor', [0, 0, 0]);
+    set(colorbarHandle, 'XTick', []);
     
 end
 %% End loop over modalities
