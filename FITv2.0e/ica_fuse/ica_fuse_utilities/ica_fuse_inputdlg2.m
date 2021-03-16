@@ -48,6 +48,13 @@ function Answer = ica_fuse_inputdlg2(Prompt, Title, NumLines, DefAns,Resize)
 %  Copyright 1998-2002 The MathWorks, Inc.
 %  $Revision: 1.58 $
 
+matlab_ver = ica_fuse_get_matlab_version;
+
+if (matlab_ver > 2018)
+    Answer = inputdlg(Prompt, Title, NumLines, DefAns);
+    return;
+end
+
 ica_fuse_defaults;
 % Screen Color Defaults
 global FIG_BG_COLOR; % Figure background color
