@@ -154,6 +154,10 @@ for nPerm = 1:num_permutations
     [aveComp, loadingCoeff, avecorr] = ica_fuse_calculate_parallelICA(data, dewhiteM, whiteM, ...
         numICARuns, type_parallel_ica, modalities, paraICAInfo.setup_analysis.ICA_Options, 'icassso', featureData);
     
+    % Compute correlations part
+    [avecorr, corrIndices] = computeCorr(loadingCoeff, aveComp, type_parallel_ica);
+    
+    
     [dd, dd_inds] = max(abs(avecorr));
     
     corrVals(nPerm) = avecorr(dd_inds);
