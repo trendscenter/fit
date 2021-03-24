@@ -51,7 +51,7 @@ end
 whitesig = cat(3, whitesig{:});
 
 % MCCA with reference
-W = ica_fuse_mcca_ssqcor_R(whitesig, numIC, reference, lam);
+W = ica_fuse_mcca_ssqcor_R2(whitesig, numIC, reference, lam);
 wM = cell(1, length(data));
 for nM = 1:length(data)
     A{nM} = (W(:, :, nM)*whitesig(:, :, nM))';
