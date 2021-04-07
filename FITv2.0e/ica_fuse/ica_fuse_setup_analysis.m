@@ -1135,9 +1135,11 @@ if (strcmpi(selectedStr, 'reference') || strcmpi(selectedStr, 'mccar'))
         end
         
         if ~isempty(reference)
-            reference = reference(:);
-            if (length(reference) ~= sum(numSubjects))
-                error('Error:Reference', 'Length of reference vector (%d) is not equal to the total number of subjects (%d)', length(reference), sum(numSubjects));
+            if (numel(reference) == length(reference))
+                reference = reference(:);
+                if (length(reference) ~= sum(numSubjects))
+                    error('Error:Reference', 'Length of reference vector (%d) is not equal to the total number of subjects (%d)', length(reference), sum(numSubjects));
+                end
             end
         end
         
