@@ -96,9 +96,9 @@ if isempty(numFeatures)
     error('Number of features is not a valid integer');
 end
 
-if numGroups*numFeatures < 2
-    error('Need atleast two features or groups to do data fusion');
-end
+% if numGroups*numFeatures < 2
+%     error('Need atleast two features or groups to do data fusion');
+% end
 
 if (isCCA && (numFeatures ~= 2))
     error('CCA + ICA works with only two features');
