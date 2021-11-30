@@ -91,7 +91,7 @@ function display_anyway_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-ica_fuse_anyway_display;
+ica_fuse_anyway_fusion_summary;
 
 % --- Executes on button press in exit_dyn_coh.
 function exit_dyn_coh_Callback(hObject, eventdata, handles)
