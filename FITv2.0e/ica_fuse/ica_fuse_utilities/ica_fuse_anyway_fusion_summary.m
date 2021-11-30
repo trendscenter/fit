@@ -6,6 +6,12 @@ global Z_THRESHOLD;
 global ANATOMICAL_PLANE;
 global CONVERT_TO_Z;
 
+
+if (~exist('param_file', 'var'))
+    param_file = ica_fuse_selectEntry('title', 'Select anyway fusion MAT file', 'filter', '*anyway_fusion.mat');
+    drawnow;
+end
+
 try
     imageValues = displayParameters.image_values;
 catch
@@ -80,5 +86,13 @@ drawnow;
 publish('ica_fuse_anyway_display', opts);
 
 close all;
+
+
+if (strcmpi(opts.format, 'html'))
+    ica_fuse_openHTMLHelpFile(fullfile(outDir, 'ica_fuse_anyway_display.html'));
+else
+    open(fullfile(outDir, 'ica_fuse_anyway_display.pdf'));
+end
+
 disp('Done');
 fprintf('\n');

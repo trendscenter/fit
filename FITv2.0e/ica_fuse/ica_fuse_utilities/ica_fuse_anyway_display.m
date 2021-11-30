@@ -10,6 +10,12 @@ global ANATOMICAL_PLANE;
 global FIG_FG_COLOR;
 
 
+if (~exist('param_file', 'var'))
+    param_file = ica_fuse_selectEntry('title', 'Select anyway fusion MAT file', 'filter', '*anyway_fusion.mat');
+    drawnow;
+end
+
+
 if (~isempty(param_file))
     load(param_file);
 end
