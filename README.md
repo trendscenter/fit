@@ -1,4 +1,4 @@
-# fit
+# FIT
 Fusion ICA Toolbox (MATLAB)
 
 
