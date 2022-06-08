@@ -14,7 +14,7 @@ function [aveComp, loadingCoeff, W, sR1, sR2, sR3] = ica_fuse_calculate_parallel
 % 1. aveComp - Average component is of the same dimensions as inpu data
 % 2. loadingCoeff - Loading coefficients is a cell array of length 2
 % 3. W - weights come out of PICA, it is needed to  back recontrct subject
-% specific fmri component 
+% specific fmri component
 % 4. maxrow - SNP component numbers
 % 5. SNPWeight - Indices surpassing SNP_Z_
 
@@ -32,9 +32,9 @@ end
 numComp1 = size(data{1}, 1);
 numComp2 = size(data{2}, 1);
 
-if (length(data) == 3)
-    type_parallel_ica = 'aa';
-end
+% if (length(data) == 3)
+%     type_parallel_ica = 'aa';
+% end
 
 
 if (strcmpi(analysisType, 'average'))
@@ -63,13 +63,16 @@ if (strcmpi(analysisType, 'average'))
             disp('Using parallel ICA algorithm AA-ref ..');
             [W, sphere, icasig_tmp] = ica_fuse_runica_picar(data, 'dewhitem', ...
                 dewhiteM, 'whitem', whiteM, ICA_Options{:});
+        elseif strcmpi(type_parallel_ica, 'TAA')
+            disp('Using 3way temporal included parallel ICA algorithm ..');
+            [W, sphere] = ica_fuse_run_three_way_parallel_ica_TAA(data, 'dewhitem', dewhiteM,'whitem', whiteM, ICA_Options{:});
         elseif strcmpi(type_parallel_ica,'att')
             disp('Using parallel ICA algorithm ATT')
             [W,sphere,icasig_tem] = ica_fuse_runica_parallelicaMul_ATT(data, 'dewhitem', ...
                 dewhiteM, 'whitem', whiteM, ICA_Options{:});
         elseif strcmpi(type_parallel_ica,'at')
-             disp('Using parallel ICA algorithm AT')
-             [W,sphere,icasig_tem] = ica_fuse_runica_parallelicaMul_AT(data, 'dewhitem', ...
+            disp('Using parallel ICA algorithm AT')
+            [W,sphere,icasig_tem] = ica_fuse_runica_parallelicaMul_AT(data, 'dewhitem', ...
                 dewhiteM, 'whitem', whiteM, ICA_Options{:});
         else
             disp('Using parallel ICA algorithm AS ..');
@@ -80,12 +83,20 @@ if (strcmpi(analysisType, 'average'))
         % Calculate the A matrix and icasig for each
         % modality separately
         A = cell(1, length(W));
+        %if (~strcmpi(type_parallel_ica, 'taa'))
         for nn = 1:length(W)
             W{nn} = W{nn}*sphere{nn};
             icasig_tmp{nn} = W{nn}*data{nn};
             A{nn} = dewhiteM{nn}*pinv(W{nn});
         end
-        
+        %else
+        if (strcmpi(type_parallel_ica, 'taa'))
+            % TIAA (requires first modality as fmri)
+            A{1} = dewhiteM{3}*pinv(W{1});
+            A{2} = dewhiteM{1}*pinv(W{2});
+            A{3} = dewhiteM{2}*pinv(W{3});
+        end
+        %end
         %% Divide components by z-scores
         
         % Loop over modalities

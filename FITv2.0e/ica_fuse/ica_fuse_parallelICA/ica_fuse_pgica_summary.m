@@ -18,7 +18,10 @@ if (isempty(outputDir))
     outputDir = pwd;
 end
 
-
+try
+    pgicaInfo.num_subjects = size(pgicaInfo.featuresInfo(2).files, 1);
+catch
+end
 linked_correlation = pgicaInfo.corr_vals;
 corrIndices = pgicaInfo.corr_inds;
 loadingFiles = pgicaInfo.loadingFiles;
@@ -125,8 +128,11 @@ defaultFigPos(1) = 0.5*sz(3) - 0.5*defaultFigPos(3) + 10;
 
 featureNames = modalities;
 numFeatures = length(loadingFiles);
-loadingCoeff{1} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{1}));
-loadingCoeff{2} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{2}));
+loadingCoeff = cell(1, numFeatures);
+for nF = 1:numFeatures
+    loadingCoeff{nF} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{nF}));
+end
+%loadingCoeff{2} = ica_fuse_loadData(fullfile(outputDir, loadingFiles{2}));
 allColors = cell(1, length(loadingCoeff));
 
 groupNames = {''};
@@ -515,23 +521,55 @@ end
 
 function dispParaStr = dispPara(pgicaInfo)
 
-maskFile_modality1 = pgicaInfo.maskFile_modality1;
-if (isempty(maskFile_modality1))
-    maskFile_modality1 = 'Default';
+% maskFile_modality1 = pgicaInfo.maskFile_modality1;
+% if (isempty(maskFile_modality1))
+%     maskFile_modality1 = 'Default';
+% end
+%
+%
+% maskFile_modality2 = pgicaInfo.maskFile_modality2;
+% if (isempty(maskFile_modality2))
+%     maskFile_modality2 = 'Default';
+% end
+
+maskType = 'Default';
+try
+    pgicaInfo.featuresInfo(1).mask;
+    maskType = 'User Specified';
+catch
+    if (~isempty(pgicaInfo.maskFile_modality1))
+        maskType = 'User Specified';
+    end
 end
 
-
-maskFile_modality2 = pgicaInfo.maskFile_modality2;
-if (isempty(maskFile_modality2))
-    maskFile_modality2 = 'Default';
-end
 
 dispParaStr{1} = '....................................................';
 dispParaStr{end + 1} = ['Modalities: ', ica_fuse_formatStr(pgicaInfo.featureNames, ',')];
-dispParaStr{end + 1} = ['Number of ', pgicaInfo.featureNames{1}, ' components: ', num2str(pgicaInfo.numComp1)];
-dispParaStr{end + 1} = ['Number of fMRI components (first level, second level): (', num2str(pgicaInfo.numComp2(1)), ', ', num2str(pgicaInfo.numComp2(2)), ')'];
+
+try
+    dispParaStr{end + 1} = ['Number of ', pgicaInfo.featuresInfo(1).name, ' components: ', num2str( pgicaInfo.featuresInfo(1).components(1))];
+catch
+    dispParaStr{end + 1} = ['Number of ', pgicaInfo.featureNames{1}, ' components: ', num2str(pgicaInfo.numComp1)];
+end
+
+try
+    numComp2 = pgicaInfo.featuresInfo(2).components;
+catch
+    numComp2 = pgicaInfo.numComp2;
+end
+dispParaStr{end + 1} = ['Number of fMRI components (first level, second level): (', num2str(numComp2(1)), ', ', num2str(numComp2(2)), ')'];
+
+try
+    dispParaStr{end + 1} = ['Number of ', pgicaInfo.featuresInfo(3).name, ' components: ', num2str( pgicaInfo.featuresInfo(3).components(1))];
+catch
+end
+
+
+%dispParaStr{end + 1} = ['Number of ', pgicaInfo.featureNames{1}, ' components: ', num2str(pgicaInfo.numComp1)];
+%dispParaStr{end + 1} = ['Number of fMRI components (first level, second level): (', num2str(pgicaInfo.numComp2(1)), ', ', num2str(pgicaInfo.numComp2(2)), ')'];
 dispParaStr{end + 1} = ['Number of subjects: ', num2str(pgicaInfo.num_subjects)];
-dispParaStr{end + 1} = ['Masks (', pgicaInfo.featureNames{1}, ' and fMRI): ', maskFile_modality1, ', ', maskFile_modality2];
+dispParaStr{end + 1} = ['Mask Type: ', maskType];
+%dispParaStr{end + 1} = %['Masks (', pgicaInfo.featureNames{1}, ' and fMRI): ', maskFile_modality1, ', ', maskFile_modality2];
 dispParaStr{end + 1} = ['Anatomical file: ', pgicaInfo.anatomical_file];
 dispParaStr{end + 1} = ['Slice Plane: ', upper(pgicaInfo.anatomical_plane(1)), pgicaInfo.anatomical_plane(2:end)];
 dispParaStr{end + 1} = ['Image values: ', upper(pgicaInfo.image_values(1)), pgicaInfo.image_values(2:end)];
