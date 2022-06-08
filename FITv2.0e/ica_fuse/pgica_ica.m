@@ -107,6 +107,11 @@ if (~exist('pgicaInfo', 'var'))
     error('Selected file is not a valid PGICA-ICA parameter file');
 end
 
+try
+    pgicaInfo.num_subjects = size(pgicaInfo.featuresInfo(2).files, 1);
+catch
+end
+
 formatName = questdlg('Select results format', 'Results format', 'HTML', 'PDF', 'HTML');
 
 if (~isempty(formatName))
