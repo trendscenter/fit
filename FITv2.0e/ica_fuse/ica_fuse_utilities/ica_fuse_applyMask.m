@@ -9,7 +9,8 @@ dataN = repmat(struct('data', [], 'xAxis', [], 'files', [], 'feature_name', [], 
 for nFeature = 1:length(featureInfo)
     ind = mask_ind(nFeature).ind; % Mask indices for the corresponding feature
     length_ind = length(find(ind ~= 0));
-    if strcmpi(featureInfo(nFeature).modality, 'fmri') || strcmpi(featureInfo(nFeature).modality, 'smri')
+    if strcmpi(featureInfo(nFeature).modality, 'fmri') || strcmpi(featureInfo(nFeature).modality, 'smri') ...
+            || strcmpi(featureInfo(nFeature).modality, 'dti')
         % get data for each feature
         [~, pp, extn] = fileparts(ica_fuse_parseExtn(deblank(featureInfo(nFeature).files(1, :))));
         if (strcmpi(extn, '.img') || strcmpi(extn, '.nii'))
