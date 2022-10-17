@@ -1,4 +1,4 @@
-function [aveComp, loadingCoeff, W, sR1, sR2, sR3] = ica_fuse_calculate_parallelICA(data, dewhiteM, whiteM, ...
+function varargout = ica_fuse_calculate_parallelICA(data, dewhiteM, whiteM, ...
     numICARuns, type_parallel_ica, modalities, ICA_Options, analysisType, featureData)
 % Runs parallel ICA multiple times
 %
@@ -348,28 +348,36 @@ else
     
 end
 
-% maxcol = []; maxrow = [];
-% maxcorr = [];
-% if (length(data) == 2)
-%     maxcorr = zeros(1, numComp1);
-%     % Match components
-%     for j=1:size(loadingCoeff{1}, 2)
-%         for m = 1:size(aveComp{2}, 1)
-%             a = loadingCoeff{1}(:, j);
-%             if strcmpi(type_parallel_ica, 'as')
-%                 b = aveComp{2}(m, :)';
-%             else
-%                 b = loadingCoeff{2}(:, m);
-%             end
-%             temp = ica_fuse_corr(a, b); % correlation
-%             if abs(temp) > abs(maxcorr(j))
-%                 maxcol(j)=j;
-%                 maxrow(j)=m;
-%                 maxcorr(j)=temp;
-%             end
-%         end
-%     end
-% end
+maxcol = []; maxrow = [];
+maxcorr = [];
+if (length(data) == 2)
+    maxcorr = zeros(1, numComp1);
+    % Match components
+    for j=1:size(loadingCoeff{1}, 2)
+        for m = 1:size(aveComp{2}, 1)
+            a = loadingCoeff{1}(:, j);
+            if strcmpi(type_parallel_ica, 'as')
+                b = aveComp{2}(m, :)';
+            else
+                b = loadingCoeff{2}(:, m);
+            end
+            temp = ica_fuse_corr(a, b); % correlation
+            if abs(temp) > abs(maxcorr(j))
+                maxcol(j)=j;
+                maxrow(j)=m;
+                maxcorr(j)=temp;
+            end
+        end
+    end
+end
+
+if ~(strcmpi(type_parallel_ica, 'at') || strcmpi(type_parallel_ica, 'taa'))
+    varargout = {aveComp, loadingCoeff, maxcorr, maxrow, sR1, sR2, sR3};
+else
+    varargout = {aveComp, loadingCoeff, W};
+end
+
+
 % Average correlation
 %avecorr = avecorr / run;
 
