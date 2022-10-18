@@ -350,25 +350,28 @@ end
 
 maxcol = []; maxrow = [];
 maxcorr = [];
-if (length(data) == 2)
-    maxcorr = zeros(1, numComp1);
-    % Match components
-    for j=1:size(loadingCoeff{1}, 2)
-        for m = 1:size(aveComp{2}, 1)
-            a = loadingCoeff{1}(:, j);
-            if strcmpi(type_parallel_ica, 'as')
-                b = aveComp{2}(m, :)';
-            else
-                b = loadingCoeff{2}(:, m);
-            end
-            temp = ica_fuse_corr(a, b); % correlation
-            if abs(temp) > abs(maxcorr(j))
-                maxcol(j)=j;
-                maxrow(j)=m;
-                maxcorr(j)=temp;
+try
+    if (length(data) == 2)
+        maxcorr = zeros(1, numComp1);
+        % Match components
+        for j=1:size(loadingCoeff{1}, 2)
+            for m = 1:size(aveComp{2}, 1)
+                a = loadingCoeff{1}(:, j);
+                if strcmpi(type_parallel_ica, 'as')
+                    b = aveComp{2}(m, :)';
+                else
+                    b = loadingCoeff{2}(:, m);
+                end
+                temp = ica_fuse_corr(a, b); % correlation
+                if abs(temp) > abs(maxcorr(j))
+                    maxcol(j)=j;
+                    maxrow(j)=m;
+                    maxcorr(j)=temp;
+                end
             end
         end
     end
+catch
 end
 
 if ~(strcmpi(type_parallel_ica, 'at') || strcmpi(type_parallel_ica, 'taa'))
