@@ -183,10 +183,18 @@ try
             answer = ica_fuse_inputdlg2(prompt, dlgTitle, lineNo, def);
             if ~isempty(answer)
                 val = str2num(answer{1});
-                if max(val) > size(data, 1)
-                    error(['Indices exceed the maximum limit']);
-                elseif min(val) < 1
-                    error(['Indices need to be positive integers']);
+                if strcmpi(modalities{getValue}, 'gene') 
+                    if max(val) > size(data, 3) %mod for genetic mask
+                        error(['Indices exceed the maximum limit']);
+                    elseif min(val) < 1
+                        error(['Indices need to be positive integers']);
+                    end
+                else
+                    if max(val) > size(data, 1)
+                        error(['Indices exceed the maximum limit']);
+                    elseif min(val) < 1
+                        error(['Indices need to be positive integers']);
+                    end
                 end
                 okData{getValue} = answer{:};
                 listData.indices(getValue).ind = answer{:};
