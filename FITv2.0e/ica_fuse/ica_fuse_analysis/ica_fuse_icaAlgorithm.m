@@ -111,7 +111,7 @@ if (nargin > 0 && nargin <= 3)
             
         case 'ccica'
             %% Constraint supervisedICA
-            [W, sphere, icasig_tmp] = ica_fuse_runica_ccica(data, ICA_Options{1:length(ICA_Options)});
+            [W, sphere, icasig_tmp, bias, signs, lrates] = ica_fuse_runica_ccica(data, ICA_Options{1:length(ICA_Options)});
             A = pinv(W);
             
         case 'combi'

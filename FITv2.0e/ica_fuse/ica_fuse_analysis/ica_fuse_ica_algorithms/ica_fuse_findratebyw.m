@@ -1,4 +1,4 @@
-function [lrate2,A1,A2,change]=findratebyw(lrate1,A1,A2,oldweights,wchwindow,whiteM,indt);
+function [lrate2,A1,A2,change]=ica_fuse_findratebyw(lrate1,A1,A2,oldweights,wchwindow,whiteM,indt);
 % add constraint to A
 sh=size(A1,1);
 sp=size(A2,1);
