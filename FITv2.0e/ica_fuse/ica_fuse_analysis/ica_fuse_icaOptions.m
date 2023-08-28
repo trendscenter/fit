@@ -547,6 +547,83 @@ elseif strcmpi(ica_algorithm, 'iva-ggd')
     inputText(numParameters).enable = 'on';
     inputText(numParameters).value = 1;
     
+elseif strcmpi(ica_algorithm, 'pmljica')
+
+    % Defaults for the pmljICA
+    MAX_WEIGHT = 1e8;       % guess that weights larger than this have blown up
+    DEFAULT_LRATE = 0.015/log(numComps);
+    DEFAULT_ANNEALSTEP   = 0.98;
+    DEFAULT_STOP = 1e-6; 
+    DEFAULT_MAXSTEPS = 100;
+    
+    % dialog Title
+    dlg_title = 'Select the Options for the pmljICA algorithm';
+    
+    numParameters = 1;
+
+    % define all the input parameters in a structure
+    inputText(numParameters).promptString = ['Select stop where Default =', num2str(DEFAULT_STOP)];
+    inputText(numParameters).uiType = 'edit';
+    inputText(numParameters).answerString = num2str(DEFAULT_STOP);
+    inputText(numParameters).answerType = 'numeric';
+    inputText(numParameters).tag = 'stop';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 0;
+    
+    numParameters = numParameters + 1;
+    
+    % define all the input parameters in a structure
+    inputText(numParameters).promptString = ['Select maxsteps where Default =' num2str(DEFAULT_MAXSTEPS)];
+    inputText(numParameters).uiType = 'edit';
+    inputText(numParameters).answerString = num2str(DEFAULT_MAXSTEPS);
+    inputText(numParameters).answerType = 'numeric';
+    inputText(numParameters).tag = 'maxsteps';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 0;
+    
+    numParameters = numParameters + 1;
+
+    % define all the input parameters in a structure
+    inputText(numParameters).promptString ='Select lrate where min = 0.000001 and max = 0.1';
+    inputText(numParameters).uiType = 'edit';
+    inputText(numParameters).answerString = num2str(DEFAULT_LRATE);
+    inputText(numParameters).answerType = 'numeric';
+    inputText(numParameters).tag = 'lrate';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 0;
+    
+    numParameters = numParameters + 1; 
+    
+    inputText(numParameters).promptString = 'Number of Components';
+    inputText(numParameters).uiType = 'popup';
+    inputText(numParameters).answerString = num2str(numComps);
+    inputText(numParameters).answerType = 'numeric';
+    inputText(numParameters).tag = 'ncomps';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 1;
+    
+    numParameters = numParameters + 1;
+
+    % define all the input parameters in a structure
+    inputText(numParameters).promptString = 'Select anneal between (0 1]';
+    inputText(numParameters).uiType = 'edit';
+    inputText(numParameters).answerString = num2str(DEFAULT_ANNEALSTEP);
+    inputText(numParameters).answerType = 'numeric';
+    inputText(numParameters).tag = 'anneal';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 0;
+    
+    numParameters = numParameters + 1;
+    
+    % define all the input parameters in a structure
+    inputText(numParameters).promptString = 'Select verbose as on/off';
+    inputText(numParameters).uiType = 'popup';
+    inputText(numParameters).answerString = {'on', 'off'};
+    inputText(numParameters).answerType = 'string';
+    inputText(numParameters).tag = 'verbose';
+    inputText(numParameters).enable = 'on';
+    inputText(numParameters).value = 1;
+    
 end
 
 if exist('inputText', 'var')

@@ -80,11 +80,29 @@ else
     
     
     if (strcmpi(type_pca, 'standard') || strcmpi(type_pca, 'reference'))
+
+        if (strcmpi(ica_type, 'pmljica'))
+
+            %% PCA combined for both modalities for all variables except from whitesig since that
+            % needs to be calc separate with modality. 
+            [V, Lambda, whitesigCombined, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);           
+
+            %% Do PCA separately between modalities for whitesig for pmljICA
+            matMod1 = data( :,1:size(data, 2)/2);
+            [V_mod1, Lambda_mod1, whitesig_mod1, whiteM_mod1, dewhiteM_mod1] = ica_fuse_calculate_pca(matMod1, numComp, type_pca, reference);
+ 
+            matMod2 = data(:,(size(data, 2)/2)+1:end);
+            [V_mod2, Lambda_mod2, whitesig_mod2, whiteM_mod2, dewhiteM_mod2] = ica_fuse_calculate_pca(matMod2, numComp, type_pca, reference);
+            whitesig = [whitesig_mod1 whitesig_mod2];
+
+            ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName', 'whitesigCombined'); %whitesig is different for the pmljICA compared to other algos. aslo saving the combined whitesig that other algos use
+            
+        else
         
-        %% Do PCA and whitening
-        [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);
-        
-        ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
+            %% Do PCA and whitening
+            [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);
+            ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
+        end
         
         
     else

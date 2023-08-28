@@ -55,7 +55,7 @@ end
 
 %% Load PCA file
 pcaFile = fullfile(outputDir, fusionInfo.run_analysis.pcaFiles(comb_number).name);
-load(pcaFile, 'whitesig', 'dewhiteM');
+load(pcaFile, 'whitesig', 'dewhiteM'); % whitesig is separate between modalities for pmljICA
 
 %% ICA Options
 ICA_Options = {};
@@ -114,6 +114,14 @@ if (strcmpi(algorithmName, 'ccica'))
     ICA_Options{length(ICA_Options) + 1} = numSubjects;
     
     clear dewhiteM;
+end
+
+%% For pmljICA the saved PCA matrix is needed
+if (strcmpi(algorithmName, 'pmljica'))
+    sPcaFile = fullfile(outputDir, fusionInfo.run_analysis.pcaFiles(comb_number).name);
+    ICA_Options{length(ICA_Options) + 1} = 'sPcaFile';
+    ICA_Options{length(ICA_Options) + 1} = sPcaFile;
+    clear sPcaFile;
 end
 
 if comb_number ~= 1

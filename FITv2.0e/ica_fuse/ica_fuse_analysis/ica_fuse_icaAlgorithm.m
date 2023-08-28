@@ -16,7 +16,7 @@ function [icaAlgo, W, A, icasig_tmp] = ica_fuse_icaAlgorithm(ica_algorithm, data
 
 %% All the available algorithms
 icaAlgo = char('Infomax','Fast ICA', 'Erica', 'Simbec', 'Evd', 'Jade Opac', 'Amuse', ...
-    'SDD ICA', 'CCICA', 'Combi', 'EBM', 'ERBM', 'IVA-G', 'IVA-GGD', 'None');
+    'SDD ICA', 'CCICA', 'Combi', 'EBM', 'ERBM', 'IVA-G', 'IVA-GGD', 'pmljICA', 'None');
 
 
 if (nargin > 3)
@@ -153,7 +153,14 @@ if (nargin > 0 && nargin <= 3)
             end
             W = ica_fuse_iva_ggd(data, ICA_Options{:});
             [W, A, icasig_tmp]  = getSig(W, data);
-            
+
+        case 'pmljica'
+            %% parallel multi link joint ICA
+            [W, sphere] = ica_fuse_OptInfomax(data, ICA_Options{1:length(ICA_Options)});
+            W = W*sphere;
+            icasig_tmp = W*data;
+            A = pinv(W);
+
         case 'none'
             %% use only the weights from pca/cca
             W = eye(size(data, 1), size(data, 1));
