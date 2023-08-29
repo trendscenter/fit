@@ -221,7 +221,13 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
              fprintf('runica(): sPcaFile must be a string')
              return
           end
-          sPcaFile = Value;       
+          sPcaFile = Value;
+       elseif strcmpi(Keyword,'iMod1LenOnes')
+          if isstr(Value)
+             fprintf('runica(): iMod1LenOnes must be a Value')
+             return
+          end
+          iMod1LenOnes = Value;            
        elseif strcmp(Keyword,'extended') | strcmp(Keyword,'extend')
           if isstr(Value)
              fprintf('runica(): extended value must be an integer (+/-)')
@@ -267,8 +273,8 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
     max_steps=maxsteps;
     clear maxsteps;
     
-    whitesigGm=dataSeparate(1:size(dataSeparate, 1)/2, :);  
-    whitesigCm=dataSeparate(size(dataSeparate, 1)/2+1:end,:); 
+    whitesigGm=dataSeparate(1:iMod1LenOnes, :);  
+    whitesigCm=dataSeparate(iMod1LenOnes+1:end,:); 
     
     dataGm=whitesigGm';
     [chansGm, framesGm] = size(dataGm); % determine the data size

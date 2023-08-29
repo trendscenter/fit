@@ -63,7 +63,11 @@ try
     
     optimalFeatures = strcmpi(OPTIMIZE_FEATURES, 'yes');
     numFeatures = fusionInfo.setup_analysis.numFeatures;
-    all_comb =  ica_fuse_get_combinations(numFeatures, STACK_ALL_FEATURES, optimalFeatures);
+    if (strcmpi(algorithmName, 'pmljICA'))
+        all_comb = {[1 2]}; % Currently pmljICA only supports 2 modalities and no combination with single modalities
+    else
+        all_comb =  ica_fuse_get_combinations(numFeatures, STACK_ALL_FEATURES, optimalFeatures);
+    end
     
     if (~isfield(fusionInfo.run_analysis, 'all_comb'))
         fusionInfo.run_analysis.all_comb = all_comb;

@@ -14,9 +14,24 @@ function [icaAlgo, W, A, icasig_tmp] = ica_fuse_icaAlgorithm(ica_algorithm, data
 % 4. icasig_tmp - Sources (components by volume)
 %
 
+% Check if run from Joint ICA
+bPmljicaAvailable = 0;
+[struStack,I] = dbstack;
+iStackSize = size(struStack,1);
+for i = 1:iStackSize
+    if strcmpi(struStack(i).file,'jointICA_fusion.m')
+        bPmljicaAvailable = 1;
+    end
+end
+
 %% All the available algorithms
-icaAlgo = char('Infomax','Fast ICA', 'Erica', 'Simbec', 'Evd', 'Jade Opac', 'Amuse', ...
-    'SDD ICA', 'CCICA', 'Combi', 'EBM', 'ERBM', 'IVA-G', 'IVA-GGD', 'pmljICA', 'None');
+if bPmljicaAvailable
+    icaAlgo = char('Infomax','Fast ICA', 'Erica', 'Simbec', 'Evd', 'Jade Opac', 'Amuse', ...
+        'SDD ICA', 'CCICA', 'Combi', 'EBM', 'ERBM', 'IVA-G', 'IVA-GGD', 'pmljICA', 'None');
+else
+    icaAlgo = char('Infomax','Fast ICA', 'Erica', 'Simbec', 'Evd', 'Jade Opac', 'Amuse', ...
+        'SDD ICA', 'CCICA', 'Combi', 'EBM', 'ERBM', 'IVA-G', 'IVA-GGD', 'None');
+end
 
 
 if (nargin > 3)

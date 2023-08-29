@@ -116,12 +116,19 @@ if (strcmpi(algorithmName, 'ccica'))
     clear dewhiteM;
 end
 
-%% For pmljICA the saved PCA matrix is needed
 if (strcmpi(algorithmName, 'pmljica'))
+    % For pmljICA the saved PCA matrix is needed
     sPcaFile = fullfile(outputDir, fusionInfo.run_analysis.pcaFiles(comb_number).name);
     ICA_Options{length(ICA_Options) + 1} = 'sPcaFile';
     ICA_Options{length(ICA_Options) + 1} = sPcaFile;
     clear sPcaFile;
+
+    % For pmljICA samples of modality 1 is needed to separate modalities
+    rowiMod1Dim = size(fusionInfo.setup_analysis.mask_ind(1).ind); %modality
+    iMod1LenOnes = length(find(reshape(fusionInfo.setup_analysis.mask_ind(1).ind, 1, prod(rowiMod1Dim))));
+    ICA_Options{length(ICA_Options) + 1} = 'iMod1LenOnes';
+    ICA_Options{length(ICA_Options) + 1} = iMod1LenOnes;
+    clear iMod1LenOnes rowiMod1Dim;
 end
 
 if comb_number ~= 1
