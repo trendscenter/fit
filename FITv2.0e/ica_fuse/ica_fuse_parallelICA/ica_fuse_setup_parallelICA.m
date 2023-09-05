@@ -1071,11 +1071,12 @@ switch (inputTag)
     case 'type_parallel_ica'
         
         titleStr = 'Type of parallel ICA';
-        D(1).string = 'There are three options like ''AA'', ''AS'' and ''AA-ref''.';
+        D(1).string = 'There are four options like ''AA'', ''AS'', ''AA-ref'' and ''sPICA''.';
         D(length(D) + 1).string = '';
         D(length(D) + 1).string = '1. AA option uses correlation measure between mixing coefficient of modality 1 with mixing coefficient of modality 2.';
         D(length(D) + 1).string = '2. AS option uses correlation measure between mixing coefficient of modality 1 with source of modality 2.';
         D(length(D) + 1).string = '3. AA-ref option uses AA algorithm with SNP constraint.';
+        D(length(D) + 1).string = '4. sPICA uses sparse parallel ICA.';
         
     case 'type_pca'
         

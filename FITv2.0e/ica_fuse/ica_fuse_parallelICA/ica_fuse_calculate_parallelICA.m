@@ -74,6 +74,12 @@ if (strcmpi(analysisType, 'average'))
             disp('Using parallel ICA algorithm AT')
             [W,sphere,icasig_tem] = ica_fuse_runica_parallelicaMul_AT(data, 'dewhitem', ...
                 dewhiteM, 'whitem', whiteM, ICA_Options{:});
+            
+        elseif strcmpi(type_parallel_ica, 'spica')
+            disp('Using parallel ICA algorithm sPICA ..');
+            [W, sphere,icasig_tmp,laststep,sparse_sign2,max_corr_corropt_tmp] = ica_fuse_runica_SparseParallelICAMul_AA(data, 'dewhitem', dewhiteM, ...
+                'whitem', whiteM, ICA_Options{:});
+
         else
             disp('Using parallel ICA algorithm AS ..');
             [W, sphere, icasig_tmp] = ica_fuse_runica_parallelica_AS(data, 'dewhitem', ...
@@ -96,6 +102,15 @@ if (strcmpi(analysisType, 'average'))
             A{2} = dewhiteM{1}*pinv(W{2});
             A{3} = dewhiteM{2}*pinv(W{3});
         end
+        
+        gene_modalities = find(strcmpi('gene', modalities));
+        if (~isempty(gene_modalities))
+            for current_gene_index = gene_modalities
+                [A{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(icasig_tmp{current_gene_index}, featureData(current_gene_index).data);
+            end
+        end
+        
+        
         %end
         %% Divide components by z-scores
         
@@ -245,6 +260,11 @@ else
         elseif strcmpi(type_parallel_ica, 'aa-ref')
             disp('Using parallel ICA algorithm AA-ref ..');
             [W, sphere] = ica_fuse_runica_picar(data, 'dewhitem', dewhiteM, 'whitem', whiteM, ICA_Options{:});
+            
+        elseif strcmpi(type_parallel_ica, 'spica')
+            disp('Using parallel ICA algorithm sPICA ..');
+            [W, sphere,icasig_tmp,laststep,sparse_sign2,max_corr_corropt_tmp] = ica_fuse_runica_SparseParallelICAMul_AA(data, 'dewhitem', dewhiteM, ...
+                'whitem', whiteM, ICA_Options{:});
         else
             disp('Using parallel ICA algorithm AS ..');
             [W, sphere] = ica_fuse_runica_parallelica_AS(data, 'dewhitem', dewhiteM, 'whitem', whiteM, ICA_Options{:});
@@ -329,6 +349,13 @@ else
         [metric_Q, loadingCoeff{3}, W3, aveComp{3}] = getStableRunEstimates(sR3, minClusterSize, maxClusterSize);
     end
     
+    
+    gene_modalities = find(strcmpi('gene', modalities));
+    if (~isempty(gene_modalities))
+        for current_gene_index = gene_modalities
+            [loadingCoeff{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(aveComp{current_gene_index}, featureData(current_gene_index).data);
+        end
+    end
     
     for nM = 1:length(loadingCoeff)
         tempS = aveComp{nM};
@@ -481,4 +508,45 @@ if n >0
     sR1.index(end+1:end + n, :) = [repmat(k1, n, 1), (1:n)'];
     sR1.A{k1} = A1;
     sR1.W{k1} = W1;
+end
+
+
+function [A_alpha_n_T,T,C,alpha,scale_IC] = AA_est_RegularizedLeastSquare(icasig,X_noise,noise_thr,signal_thr)
+%%%Reconstruct the loading matrix using Tychonov-regularized least squares
+if ~exist('noise_thr','var') %%if user does not input the noise threshold
+    noise_thr = 1;
+end
+
+if ~exist('signal_thr','var') %%if user does not input the signal threshold
+    signal_thr = 2.5;
+end
+
+noise_region_grudtrth = find(abs(zscore(icasig(1,:)))<noise_thr);
+signal_region_potential = [];
+noise_region_potential = [];
+for i = 1:size(icasig,1)
+    icasig_z(i,:) = zscore(icasig(i,:));
+    signal_region_potential = [signal_region_potential,find(abs(icasig_z(i,:))>signal_thr)];
+    noise_region_potential_tmp = intersect(noise_region_grudtrth,find(abs(icasig_z(i,:))<noise_thr));
+    noise_region_potential = [noise_region_potential,noise_region_potential_tmp];
+end
+signal_region_potential = unique(signal_region_potential);
+noise_region_potential = unique(noise_region_potential);
+scale_IC = max(icasig_z(:))-min(icasig_z(:));
+icasig_z_n = icasig_z./(max(icasig_z(:))-min(icasig_z(:)));
+%%%%%SVD and PCA and weighted least square are sensentive to the scale, but the scale of components
+%%%%%from ICA is arbitratry, so need to normalize the scale of S, then do SVD
+[U,S,V] = svd(icasig_z_n,'econ');%%SVD
+C = 1/((min(diag(S)))^3);  %%%get the minimum singular value and use it to compute C
+%%%%using weighted least square to compute A matrix, one subject at once
+for i = 1:size(X_noise,1)
+    A_alpha0_T(i,:) = inv(icasig_z_n*icasig_z_n')*icasig_z_n*X_noise(i,:)';
+    alpha(i) = (norm(X_noise(i,noise_region_potential),2)/(2*C*norm(X_noise(i,signal_region_potential),2)))^(2/3);%%compute the optimal alpha for each subject
+    A_alpha_n_T(i,:) = inv(icasig_z_n*icasig_z_n'+alpha(i).*eye(size(icasig_z_n,1)))*icasig_z_n*X_noise(i,:)';    
+end
+%%%test if the error bounds condition can be satisfied by using the suggested alpha.
+for i = 1:size(X_noise,1)
+    diff_t1 = norm((A_alpha0_T(i,:)-A_alpha_n_T(i,:)),2);
+    cmp_val = (2*C*norm(X_noise(i,signal_region_potential),2)*(norm(X_noise(i,noise_region_potential),2)^2))^1/3;
+    T(i) = (diff_t1<=cmp_val);
 end

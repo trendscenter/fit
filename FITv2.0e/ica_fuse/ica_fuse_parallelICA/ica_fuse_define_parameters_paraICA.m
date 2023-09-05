@@ -114,7 +114,7 @@ numParameters = numParameters + 1;
 
 % Type of parallel ICA
 inputText(numParameters).promptString = 'Select type of parallel ICA';
-inputText(numParameters).answerString = char('AA', 'AS', 'AA-ref');
+inputText(numParameters).answerString = char('AA', 'AS', 'AA-ref', 'sPICA');
 inputText(numParameters).uiType = 'popup';
 inputText(numParameters).answerType = 'string';
 inputText(numParameters).tag = 'type_parallel_ica';

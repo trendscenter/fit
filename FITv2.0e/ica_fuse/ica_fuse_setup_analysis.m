@@ -1358,7 +1358,7 @@ switch (inputTag)
     case 'algorithm'
         
         titleStr = 'ICA Algorithm';
-        D(1).string = 'Currently, 12 ICA algorithms are available in the toolbox like Infomax, Fast ICA, Erica, Simbec, Evd, Jade Opac, Amuse, SDD ICA, CCICA, Combi, EBM and ERBM.';
+        D(1).string = 'Currently, 15 ICA algorithms are available in the toolbox like Infomax, Fast ICA, Erica, Simbec, Evd, Jade Opac, Amuse, SDD ICA, CCICA, Combi, EBM, ERBM, IVA-G, IVA-GGD adn pmjlICA.';
         
     otherwise
         
