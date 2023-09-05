@@ -125,6 +125,16 @@ if (exist('lrate', 'var'))
     inputText(numParameters).value = 0;
 end
 
+numParameters = numParameters + 1;
+% define all the input parameters in a structure
+inputText(numParameters).promptString = 'Enter hoyer index (Only used in Sparse pICA)';
+inputText(numParameters).uiType = 'edit';
+inputText(numParameters).answerString = '[0.01, 0.45]';
+inputText(numParameters).answerType = 'numeric';
+inputText(numParameters).tag = 'hoyerindex';
+inputText(numParameters).enable = 'on';
+inputText(numParameters).value = 0;
+
 
 % Input dialog box
 answer = ica_fuse_inputDialog('inputtext', inputText, 'Title', 'Select ICA options', 'handle_visibility', handle_visibility);
