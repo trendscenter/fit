@@ -36,6 +36,13 @@ numComp2 = size(data{2}, 1);
 %     type_parallel_ica = 'aa';
 % end
 
+if ~strcmpi(type_parallel_ica, 'spica')
+    chkOpts = strmatch('hoyerindex', ICA_Options(1:2:end), 'exact');
+    if (~isempty(chkOpts))
+        ICA_Options(2*chkOpts-1:2*chkOpts) = [];
+    end
+end
+
 
 if (strcmpi(analysisType, 'average'))
     
