@@ -946,6 +946,7 @@ try
     setappdata(0, 'paraICA_APPData', fusionFile);
     
     delete(handles);
+    disp(['Please press the [Run Analysis] button to continue']);
     
 catch
     
