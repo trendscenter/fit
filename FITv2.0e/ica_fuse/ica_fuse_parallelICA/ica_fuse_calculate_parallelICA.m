@@ -86,7 +86,7 @@ if (strcmpi(analysisType, 'average'))
             disp('Using parallel ICA algorithm sPICA ..');
             [W, sphere,icasig_tmp,laststep,sparse_sign2,max_corr_corropt_tmp] = ica_fuse_runica_SparseParallelICAMul_AA(data, 'dewhitem', dewhiteM, ...
                 'whitem', whiteM, ICA_Options{:});
-
+            
         else
             disp('Using parallel ICA algorithm AS ..');
             [W, sphere, icasig_tmp] = ica_fuse_runica_parallelica_AS(data, 'dewhitem', ...
@@ -110,13 +110,16 @@ if (strcmpi(analysisType, 'average'))
             A{3} = dewhiteM{2}*pinv(W{3});
         end
         
+        
         gene_modalities = find(strcmpi('gene', modalities));
-        if (~isempty(gene_modalities))
-            for current_gene_index = gene_modalities
-                [A{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(icasig_tmp{current_gene_index}, featureData(current_gene_index).data);
+        
+        if  strcmpi(type_parallel_ica, 'spica')
+            if (~isempty(gene_modalities))
+                for current_gene_index = gene_modalities
+                    [A{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(icasig_tmp{current_gene_index}, featureData(current_gene_index).data);
+                end
             end
         end
-        
         
         %end
         %% Divide components by z-scores
@@ -358,9 +361,11 @@ else
     
     
     gene_modalities = find(strcmpi('gene', modalities));
-    if (~isempty(gene_modalities))
-        for current_gene_index = gene_modalities
-            [loadingCoeff{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(aveComp{current_gene_index}, featureData(current_gene_index).data);
+    if  strcmpi(type_parallel_ica, 'spica')
+        if (~isempty(gene_modalities))
+            for current_gene_index = gene_modalities
+                [loadingCoeff{current_gene_index},T_tmp,C_tmp,alpha_tmp] = AA_est_RegularizedLeastSquare(aveComp{current_gene_index}, featureData(current_gene_index).data);
+            end
         end
     end
     
@@ -549,7 +554,7 @@ C = 1/((min(diag(S)))^3);  %%%get the minimum singular value and use it to compu
 for i = 1:size(X_noise,1)
     A_alpha0_T(i,:) = inv(icasig_z_n*icasig_z_n')*icasig_z_n*X_noise(i,:)';
     alpha(i) = (norm(X_noise(i,noise_region_potential),2)/(2*C*norm(X_noise(i,signal_region_potential),2)))^(2/3);%%compute the optimal alpha for each subject
-    A_alpha_n_T(i,:) = inv(icasig_z_n*icasig_z_n'+alpha(i).*eye(size(icasig_z_n,1)))*icasig_z_n*X_noise(i,:)';    
+    A_alpha_n_T(i,:) = inv(icasig_z_n*icasig_z_n'+alpha(i).*eye(size(icasig_z_n,1)))*icasig_z_n*X_noise(i,:)';
 end
 %%%test if the error bounds condition can be satisfied by using the suggested alpha.
 for i = 1:size(X_noise,1)

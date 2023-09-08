@@ -979,11 +979,11 @@ getVal = get(hObject, 'value');
 
 typePCAH = findobj(handles, 'tag', 'type_pca');
 
-if strcmpi(deblank(getStr(getVal, :)), 'aa') || strcmpi(deblank(getStr(getVal, :)), 'aa-ref')
+%if ~strcmpi(deblank(getStr(getVal, :)), 'as')
     set(typePCAH, 'enable', 'on');
-else
-    set(typePCAH, 'enable', 'off');
-end
+%else
+%    set(typePCAH, 'enable', 'off');
+%end
 
 function typePCACallback(hObject, event_data, handles)
 % Type of PCA callback
