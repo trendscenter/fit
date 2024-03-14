@@ -113,3 +113,78 @@ d = max(max(idx));
 
 [~, location] = max(idx(:));
 [r1Est,r2Est] = ind2sub(size(idx),location);
+
+
+function [d, r1Est, r2Est] = IC_maxmin_rich(Ux,Uy,X,Y,M,Thre,RealComp,f,rmax)
+% IC_maxmin.m - MDL based max-min method, in case of sufficient samples
+%
+% Thre                'MDL' or 'AIC' ('AIC' is used only for test)
+% RealComp            'real' or 'comp'
+% rmax                {r1,r2} = 1,...,rmax
+% 
+% 
+%
+% Input:
+%
+% X:         data set X
+% Y:         data set Y
+% Ux:        contains left singular vectors of X
+% Uy:        contains left singular vectors of Y
+% M:         number of samples
+% Thre:     'MDL' ('AIC' is used only for test)
+% RealComp: 'real' for real-valued data; 
+%           'comp' for complex-valued data
+% f:         f(1) is the number of independent signals in X
+%            f(2) is the number of independent signals in Y
+% rmax       {r1,r2} = 1,...,rmax
+%             r1: the rank PCA keeps in X
+%             r2: the rank PCA keeps in Y
+%
+% Output:
+%
+% d:         number of correlated signal between X and Y
+% r1Est:     the optimum rank that PCA should keep for X
+% r2Est:     the optimum rank that PCA should keep for Y
+
+for r1 = 1:rmax
+    % If f1=f2, we let r1=r2.
+    Xnew = Ux(:,1:r1)'*X;
+    if f(1)==f(2), r2range  = r1; else r2range = 1:rmax; end
+    for r2 = r2range
+        Ynew = Uy(:,1:r2)'*Y;
+        Rxx = 1/M*(Xnew)*Xnew';
+        Ryy = 1/M*(Ynew)*Ynew';
+        Rxy = 1/M*(Xnew)*Ynew';
+        Cxy = sqrtm(inv(Rxx))*Rxy*sqrtm(inv(Ryy));
+        ga = sort(svd(Cxy),'descend');
+        for r3 = 0:min(r1,r2)-1
+            switch lower(RealComp)
+                case 'real'
+                    dof = r1*r2 - (r1-r3)*(r2-r3);
+                    Loglike = M/2*log(prod(1-ga(1:r3).^2));
+                case 'comp'
+                    dof = 2*r3*(r1+r2-r3);
+                    Loglike = M*log(prod(1-ga(1:r3).^2));
+            end
+            switch lower(Thre)
+                case 'mdl'
+                    pen = 1/2*log(M)*dof;
+                case 'aic'
+                    pen = dof;
+            end
+            IC(r3+1) = Loglike + pen;
+        end
+        if min(IC)==-inf, 
+            idx(r1,r2)=0;
+        else
+            idx(r1,r2) = find(IC==min(IC))-1; 
+        end
+        clear IC
+    end
+end
+d = max(max(idx));
+
+[~, location] = max(idx(:));
+[r1Est,r2Est] = ind2sub(size(idx),location);
+
+
