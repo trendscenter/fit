@@ -25,3 +25,12 @@ FIT toolbox is used to examine the shared information between features (SPM cont
 [**Linux-x86-64**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/linux/FITv2.0c_stand_alone.zip) - Compiled on Linux-x86-64 bit OS with FITv2.0c. Please see [**read me**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/linux/readme.txt) text file for installation details.<br>
 [**Example Subjects**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/data/Fusion_Example_Data.zip) - Example data are: fmri-fmri, eeg-fmri and fmri-gene data-sets.<br>
 
+### Screen Shots <a name="secScreen"></a>
+
+| ![GIFT](https://github.com/trendscenter/gift/blob/master/doc/web/img/20240705Gift4Ims.png) |
+|:--:|
+| Figure 1. FIT Sceenshots|
+
+### Documentation/Manual<a name="manual"></a>
+[Click here for link to manual in PDF format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.pdf) <br>
+[Click here for link to manual in Word format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.docx)
