@@ -27,7 +27,7 @@ FIT toolbox is used to examine the shared information between features (SPM cont
 
 ### Screen Shots <a name="secScreen"></a>
 
-| ![GIFT](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/web/ims/20240705Fit4Ims.png) |
+| ![GIFT](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/web/img/20240705Fit4Ims.png) |
 |:--:|
 | Figure 1. FIT Sceenshots|
 
