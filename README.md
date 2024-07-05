@@ -16,5 +16,12 @@ Fusion ICA Toolbox (MATLAB)
 ### Introduction <a name="secIntro"></a>
 Fusion ICA (FIT) Toolbox is a Matlab toolbox, implementing joint ICA, parallel ICA, CCA-Joint ICA methods and many other methods. It is supported by the NIH and NSF grants to Dr.Vince Calhoun and Dr. Tulay Adali.
 
-FIT toolbox is used to examine the shared information between features (SPM contrast image, EEG signal or SNP data), having more than 3239 downloads by researchers world wide. FIT works on Matlab 6.5 and higher (releases after 2002). For any question or comments please contact Vince Calhoun (vcalhoun@gsu.edu), Jing Sui (jsui@gsu.edu) or Cyrus Eierud (ceierud@gsu.edu).
+FIT toolbox is used to examine the shared information between features (SPM contrast image, EEG signal or SNP data), having more than 3239 downloads by researchers world wide. For any question or comments please contact Vince Calhoun (vcalhoun@gsu.edu), Jing Sui (jsui@gsu.edu) or Cyrus Eierud (ceierud@gsu.edu).
+
+### Downloads <a name="secDownload"></a>
+**Fusion ICA Toolbox (FIT)**  - Download latest version by clicking the green code button on the upper right on this page and then clone the software using the link and the git clone command in your terminal. Current FIT requiers MATLAB version 6.5 and higher (releases after 2002).
+#### Stand Alone Versions
+[**Windows 64**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/windows/FITv2.0c_stand_alone.zip) - Compiled on Windows 64 bit OS with FITv2.0c. Please see [**read me**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/windows/readme.txt) text file for installation details.
+[**Linux-x86-64**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/linux/FITv2.0c_stand_alone.zip) - Compiled on Linux-x86-64 bit OS with FITv2.0c. Please see [**read me**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/software/stand_alone/linux/readme.txt) text file for installation details.
+[**Example Subjects**](https://trends-public-website-fileshare.s3.amazonaws.com/public_website_files/software/fit/data/Fusion_Example_Data.zip) - Example data are: fmri-fmri, eeg-fmri and fmri-gene data-sets.
 
