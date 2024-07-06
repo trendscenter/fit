@@ -25,16 +25,16 @@ FIT toolbox is used to examine the shared information between features (SPM cont
 
 ### Screen Shots <a name="secScreen"></a>
 
-| ![GIFT](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/web/img/20240705Fit4Ims.png) |
+| ![GIFT](https://github.com/trendscenter/fit/blob/master/doc/doc/web/img/20240705Fit4Ims.png) |
 |:--:|
 | Figure 1. FIT Sceenshots|
 
 ### Documentation/Manual<a name="manual"></a>
-[Click here for link to manual in PDF format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.pdf) <br>
-[Click here for link to manual in Word format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.docx)<br>
+[Click here for link to manual in PDF format](https://github.com/trendscenter/fit/blob/master/doc/v2.0e_fit.pdf) <br>
+[Click here for link to manual in Word format](https://github.com/trendscenter/fit/blob/master/doc/v2.0e_fit.docx)<br>
 
 ### Version History<a name="secVerHist"></a>
-
+[Click here for the FIT update history of features](https://github.com/trendscenter/fit/blob/master/doc/web/updates) <br>
 
 ### Publications<a name="pubs"></a>
-
+[Click here for a list of publications about FIT](https://github.com/trendscenter/fit/blob/master/doc/web/publications) <br>
