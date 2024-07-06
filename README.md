@@ -1,8 +1,6 @@
 # FIT
-Fusion ICA Toolbox (MATLAB)
-
 <!-- PLEASE DO NOT EDIT THIS LINE OR LINE BELOW -->
-### Fusion ICA Toolbox v
+### Fusion ICA Toolbox v2.0.5.0 (MATLAB)
 <!-- PLEASE DO NOT EDIT ABOVE THIS LINE -->
 
 ### Table of Contents
@@ -33,4 +31,10 @@ FIT toolbox is used to examine the shared information between features (SPM cont
 
 ### Documentation/Manual<a name="manual"></a>
 [Click here for link to manual in PDF format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.pdf) <br>
-[Click here for link to manual in Word format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.docx)
+[Click here for link to manual in Word format](https://github.com/trendscenter/fit/blob/master/FITv2.0e/ica_fuse/doc/v2.0e_fit.docx)<br>
+
+### Version History<a name="secVerHist"></a>
+
+
+### Publications<a name="pubs"></a>
+
