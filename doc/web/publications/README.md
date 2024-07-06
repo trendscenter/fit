@@ -1,1 +1,10 @@
-
+# Publications
+- J. Sui, H. He, G. D. Pearlson, T. Adali, K. A. Kiehl, Q. Yu, V.P. Clark, E. Castro, T. White, B. A. Mueller, B. C. Ho, N. C. Andreasen, , V .D. Calhoun, "Three-way (N-way) fusion of brain imaging data based on mCCA+jICA and its application to discriminating schizophrenia", Neuroimage 2, 119-132, 2013.
+- J. Sui, G. Pearlson, A. Caprihan, T. Adali, K. A. Kiehl, J. Liu, J. Yamamoto, V. D. Calhoun, "Discriminating schizophrenia and bipolar disorder by fusing fMRI and DTI in a multimodal CCA+ joint ICA model", Neuroimage 57, 839-855, 2011.
+- J. Sui, T. Adali, G. D. Pearlson, H. Yang, S. R. Sponheim, T. White, V. D.Calhoun, A CCA+ICA Based Model for Multi-Task Brain Imaging Data Fusion And ItsApplication to Schizophrenia, Neuroimage, vol. 51(5), pp 123-134, 2010.
+- J. Sui, T. Adali, G. D. Pearlson and V. D. Calhoun, An ICA-based method for the identification of optimal FMRI features andcomponents using combined group-discriminative techniques, NeuroImage, vol. 46(1), pp 73-86, 2009a.
+- J. Sui, T. Adali, G. D. Pearlson, V. P. Clark and V. D. Calhoun,A method for accurate group difference detection by constraining the mixingcoefficients in an ICA framework, HBM,  vol. 30 (9), 2009b.
+- J. Liu, G. D. Pearlson, A. Windemuth, G. Ruano, N. I. Perrone-Bizzozero,and V. D. Calhoun, Combining fMRI and SNP Data to Investigate Connections between Brain Functionand Genetics Using Parallel ICA , HBM, December 2007.
+- V. D. Calhoun, T. Adali, K. A. Kiehl, R. Astur, J. J. Pekar and G. D.Pearlson,A Method for Multitask fMRI Data Fusion Applied to Schizophrenia , HBM,vo1. 27, pp. 598-610, 2006
+- V. D. Calhoun, T. Adali, G. D. Pearlson and K. A. Kiehl,Neuronal chronometry of target detection: Fusion of hemodynamic andevent-related potential data, NeuroImage, vo1. 30, pp. 544-553, 2006
+- V. D. Calhoun., T. Adali, N. R. Giuliani, J. J. Pekar, K. A. Kiehl and G.D. Pearlson, Method for multimodal analysis of independent source differences inschizophrenia: combining gray matter structural and auditory oddballfunctional data, HBM, vol. 27, pp. 47-62, 2006
