@@ -14,7 +14,7 @@
 ### Introduction <a name="secIntro"></a>
 Fusion ICA (FIT) Toolbox is a Matlab toolbox, implementing joint ICA, parallel ICA, CCA-Joint ICA methods and many other methods. It is supported by the NIH and NSF grants to Dr.Vince Calhoun and Dr. Tulay Adali.
 
-FIT toolbox is used to examine the shared information between features (SPM contrast image, EEG signal or SNP data), having more than 3239 downloads by researchers world wide. For any question or comments please contact Vince Calhoun (vcalhoun@gsu.edu), Jing Sui (jsui@gsu.edu) or Cyrus Eierud (ceierud@gsu.edu).
+FIT toolbox is used to examine the shared information between features (SPM contrast image, EEG signal or SNP data), having 3239 downloads (as of 7/6/24) by researchers world wide. For any question or comments please contact Vince Calhoun (vcalhoun@gsu.edu) or Cyrus Eierud (ceierud@gsu.edu).
 
 ### Downloads <a name="secDownload"></a>
 **Fusion ICA Toolbox (FIT)**  - Download latest version by clicking the green code button on the upper right on this page and then clone the software using the link and the git clone command in your terminal. Current FIT requiers MATLAB version 6.5 and higher (releases after 2002).<br>
