@@ -11,7 +11,7 @@ function [A, jicasig, wM] = ica_fuse_mcca_reference(data, numPC, reference, opts
 % 1. A - Mixing coefficients
 % 2. jicasig - Canonical scores
 %
-
+ica_fuse_defaults;
 global MCCAR_LAMBDA;
 
 if (~iscell(data))
