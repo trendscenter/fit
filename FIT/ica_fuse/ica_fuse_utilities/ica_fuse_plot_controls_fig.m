@@ -1,6 +1,10 @@
-function [InputHandle] = ica_fuse_plot_controls_fig(inputText, figureTag, handle_visibility, okTag, cancelTag, plotHelp)
+function [InputHandle] = ica_fuse_plot_controls_fig(inputText, figureTag, handle_visibility, okTag, cancelTag, plotHelp, d_ypos_offset)
 % Plot on a figure the user interface controls with Done and Cancel buttons
 % Function callbacks can be defined outside of the function
+
+if ~exist('d_ypos_offset','var')
+    d_ypos_offset = 0
+end
 
 if ~exist('handle_visibility', 'var')
     handle_visibility = 'on';
@@ -57,7 +61,7 @@ okPos = [0.75 - 0.5*okPos(3) 0.94 - 0.5*okPos(4) okPos(3) okPos(4)];
 cancelPos = [0.25 - 0.5*okPos(3) okPos(2) okPos(3) okPos(4)];
 
 % set the yPos
-yPos = okPos(2) - 1.5*yOffset;
+yPos = d_ypos_offset + okPos(2) - 1.5*yOffset;
 
 % Position of prompt string
 promptPos = [0.02 yPos  0.5 0.1];

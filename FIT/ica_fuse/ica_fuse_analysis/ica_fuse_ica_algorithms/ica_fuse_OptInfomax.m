@@ -376,7 +376,7 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
                     set(gca,'XTick',(1:50:701))
                     pause(0.01)
                     grid on
-                    title('Joint Optimization')
+                    title('Jointly Optimization')
                     xlabel('Epoch')
                     ylabel('Weight change')
                 end

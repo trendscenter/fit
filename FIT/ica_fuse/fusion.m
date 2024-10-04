@@ -22,7 +22,7 @@ function varargout = fusion(varargin)
 
 % Edit the above text to modify the response to help FUSION
 
-% Last Modified by GUIDE v2.5 22-Nov-2021 22:46:02
+% Last Modified by GUIDE v2.5 01-Jul-2024 21:07:21
 
 ica_fuse_delete_gui({'fusion', 'jointICA_fusion', 'parallel_ica_toolbox', 'CCA_ICA_fusion', 'tIVA_fusion', 'mCCA_fusion', 'pgica_ica', 'neural_net_fusion'});
 
@@ -263,3 +263,12 @@ function anyway_fusion_Callback(hObject, eventdata, handles)
 
 
 anyway_fusion;
+
+
+% --- Executes on button press in joint_cm_ica.
+function joint_cm_ica_Callback(hObject, eventdata, handles)
+% hObject    handle to joint_cm_ica (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+joint_cmica_fusion;

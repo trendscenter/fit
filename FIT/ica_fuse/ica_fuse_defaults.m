@@ -141,6 +141,10 @@ global MCCAR_LAMBDA;
 %% PGICA-ICA
 global PGICA_ICA_DEFAULTS;
 
+%% Grey and White matter Masks
+global GREY_MATTER
+global WHITE_MATTER
+
 %% Color Defaults
 FIG_BG_COLOR = [0 0 0]; % Figure back ground color
 FIG_FG_COLOR = [1 1 1]; % Figure font color
@@ -346,3 +350,9 @@ PGICA_ICA_DEFAULTS.mask.smri_corr_threshold = 0.8;% Correlation threshold to rem
 PGICA_ICA_DEFAULTS.mask.fmri_mult = 1;% fmri Multiplier
 PGICA_ICA_DEFAULTS.mask.fmri_threshold = 0.01;%Average Mask threshold for fmri
 PGICA_ICA_DEFAULTS.mask.fmri_corr_threshold = 0.8;%Correlation threshold to remove outlier subjects
+
+
+
+%% Grey matter and white matter mask
+GREY_MATTER = which('probseg-GM_res-5x5x5_mask.nii');
+WHITE_MATTER = which('probseg-WM_res-5x5x5_mask.nii');

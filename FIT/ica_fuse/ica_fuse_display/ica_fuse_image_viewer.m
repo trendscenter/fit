@@ -18,6 +18,7 @@ structFile = [];
 display_type = 'montage';
 anatomical_view = 'axial';
 slices_in_mm = [];
+colorbar_orientation = 'vertical';
 
 ica_fuse_defaults;
 global UI_FONT_SIZE;
@@ -53,6 +54,8 @@ for n = 1:2:length(varargin)
         axesH = varargin{n + 1};
     elseif (strcmpi(varargin{n}, 'colorbar'))
         useColorbar = varargin{n + 1};
+    elseif (strcmpi(varargin{n}, 'colorbar_orientation'))
+        colorbar_orientation = varargin{n + 1};
     end
 end
 
@@ -103,7 +106,7 @@ end
 
 fontSizeText = 8;
 convertToZ = strcmpi(convert_to_zscores, 'yes');
-returnValue = strmatch(lower(image_values), {'positive and negative', 'positive', 'absolute value', 'negative'}, 'exact');
+returnValue = strmatch(lower(image_values), {'positive and negative', 'positive', 'absolute value', 'negative', 'positive dmri'}, 'exact');
 
 if (isempty(labels))
     [dd, FileName, extn] = fileparts(deblank(file_names(1, :)));
@@ -113,12 +116,16 @@ end
 
 fig_title = labels;
 
-load ica_fuse_colors coldhot;
+load ica_fuse_colors coldhot blue;
 if (returnValue == 1)
     cmap = coldhot(1:4:end, :);
 elseif (returnValue == 4)
     cmap = coldhot(1:128, :);
     cmap = cmap(1:2:end, :);
+elseif (returnValue == 5)
+    % negative
+    cmap = blue(1:4:end, :);
+    returnValue = 2;
 else
     cmap = coldhot(129:end, :);
     cmap = cmap(1:2:end, :);
@@ -164,7 +171,7 @@ if (strcmpi(display_type, 'montage'))
     
     % return overlayed images depending upon the data type of icasig and
     % structuralImage
-    [icasig,  maxICAIM, minICAIM, minInterval, maxInterval] = ica_fuse_overlayImages(icasig, structuralImage, ...
+     [icasig, minICAIM, maxICAIM, minInterval, maxInterval] = ica_fuse_overlayImages(icasig, structuralImage, ...
         structDIM, returnValue, 1);
     
     icasig = reshape(icasig, structDIM);
@@ -187,9 +194,10 @@ if (strcmpi(display_type, 'montage'))
     im = ica_fuse_return_montage(icasig, DIM);
     
     
-    colormap(cmap);
+    %colormap(cmap);
     
     ImageAxis = image(im, 'parent', axesH, 'CDataMapping', 'scaled');
+    colormap(axesH,cmap);
     set(axesH, 'clim',  [minInterval, 2*maxInterval]); % set the axis positions to the specified
     axis(axesH, 'off');
     axis(axesH, 'image');
@@ -227,39 +235,48 @@ if (strcmpi(display_type, 'montage'))
         
         imagePos = get(axesH, 'position');
         pos = [imagePos(1) + imagePos(3) + .04, imagePos(2)+.1, 0.03, 0.13];
-        
-        if ((ica_fuse_get_matlab_version <= 2013) || strcmpi(version('-release'), '2014a'))
-            ColorbarHandle = colorbar('peer', axesH);
-        else
-            ColorbarHandle = colorbar;
-        end
-        set(ColorbarHandle, 'position', [pos(1), pos(2) pos(3) pos(4)]);
-        
         maxLabel = round(maxICAIM(1)*10)/10;
         minLabel = round(minICAIM(1)*10)/10;
-        
         YTick = [minInterval, maxInterval];
-        set(ColorbarHandle,'YLim',YTick);
         
-        set(ColorbarHandle, 'YTick', []);
         
-        if ((ica_fuse_get_matlab_version <= 2013) || strcmpi(version('-release'), '2014a'))
+        if (~strcmpi(colorbar_orientation, 'horiz'))
             
-            title(maxLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
-            xlabel(minLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
+            if ((ica_fuse_get_matlab_version <= 2013) || strcmpi(version('-release'), '2014a'))
+                ColorbarHandle = colorbar('peer', axesH);
+            else
+                ColorbarHandle = colorbar;
+            end
+            set(ColorbarHandle, 'position', [pos(1), pos(2) pos(3) pos(4)]);
+            
+            
+            set(ColorbarHandle,'YLim',YTick);
+            
+            set(ColorbarHandle, 'YTick', []);
+            
+            if ((ica_fuse_get_matlab_version <= 2013) || strcmpi(version('-release'), '2014a'))
+                
+                title(maxLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
+                xlabel(minLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
+                
+            else
+                
+                labelsH = get(ColorbarHandle, 'label');
+                set(ColorbarHandle, 'color', UI_FG_COLOR);
+                set(labelsH, 'units', 'normalized');
+                title(maxLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
+                set(labelsH, 'string', minLabel, 'rotation',0);
+                set(labelsH, 'position', [0.45, -.12, 0]);
+                
+            end
+            
+            set(ColorbarHandle, 'YTickLabel', []);
             
         else
-            
-            labelsH = get(ColorbarHandle, 'label');
-            set(ColorbarHandle, 'color', UI_FG_COLOR);
-            set(labelsH, 'units', 'normalized');
-            title(maxLabel, 'parent', ColorbarHandle, 'color', UI_FG_COLOR, 'Horizontalalignment', 'center');
-            set(labelsH, 'string', minLabel, 'rotation',0);
-            set(labelsH, 'position', [0.45, -.12, 0]);
+            % horizontal colorbar
+            drawcolorbar(axesH, YTick, minLabel, maxLabel);
             
         end
-        
-        set(ColorbarHandle, 'YTickLabel', []);
         
     end
     
@@ -701,3 +718,22 @@ setappdata(0, 'disp_para_data', dispParameters);
 delete(handles);
 
 drawnow;
+
+
+
+function drawcolorbar(sh, clim, minLabel, maxLabel)
+ica_fuse_defaults;
+global UI_FG_COLOR;
+
+axesPos = get(sh, 'position');
+colorbar_width = 0.5*axesPos(3);
+pos2 = [axesPos(1) + 0.5*axesPos(3) - 0.5*colorbar_width, axesPos(2) - 0.05, colorbar_width, 0.02];
+ch = colorbar(sh, 'horiz');
+set(ch, 'position', pos2);
+set(ch, 'xlim', clim);
+set(ch, 'color', UI_FG_COLOR);
+xTicks = get(ch, 'xTick');
+set(ch, 'xTick', [xTicks(1), xTicks(end)]);
+set(ch, 'xTicklabel', {minLabel, maxLabel});
+set(ch, 'color', UI_FG_COLOR);
+set(ch, 'XColor', UI_FG_COLOR, 'YColor', UI_FG_COLOR);
