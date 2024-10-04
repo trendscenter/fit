@@ -1,6 +1,6 @@
 # FIT
 <!-- PLEASE DO NOT EDIT THIS LINE OR LINE BELOW -->
-### Fusion ICA Toolbox v2.0.5.2 (MATLAB)
+### Fusion ICA Toolbox v2.0.5.3 (MATLAB)
 <!-- PLEASE DO NOT EDIT ABOVE THIS LINE -->
 
 ### Table of Contents
