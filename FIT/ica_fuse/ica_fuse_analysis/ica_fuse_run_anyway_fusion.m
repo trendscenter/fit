@@ -23,6 +23,12 @@ try
 catch
 end
 
+reference_ica = [];
+try
+    reference_ica = fusionInfo.setup_analysis.reference_ica;
+catch
+end
+
 % record analysis information in a log file
 diaryFile = fullfile(outputDir, [prefix, '_anyway_results.log']);
 diary(diaryFile);
@@ -52,6 +58,7 @@ else
     
 end
 
+fusionInfo.setup_analysis.feature_info = feature_info;
 fusionInfo.run_analysis.feature_info = feature_info;
 
 
@@ -59,11 +66,19 @@ num_comps = [feature_info.comp];
 
 fusionInfo.run_analysis.num_comps = num_comps;
 
-lambda_iva = 0.2;
+algorithm_opts = {'iva_lambda', 0.2};
 try
-    lambda_iva = fusionInfo.setup_analysis.algorithm_opts.lambda_iva;
+    algorithm_opts = fusionInfo.setup_analysis.algorithm_opts;
 catch
 end
+
+algorithm_opts = convertToCell(algorithm_opts);
+
+% lambda_iva = 0.2;
+% try
+%     lambda_iva = fusionInfo.setup_analysis.algorithm_opts.lambda_iva;
+% catch
+% end
 
 
 numFeatures = length(feature_info);
@@ -111,9 +126,15 @@ for nF = 1:length(feature_info)
     dataInfo.feature(nF).modality =  feature_info(nF).modality;
 end
 
-disp('Computing anyway fusion ...');
-
-[~, ~, icasig, A] = ica_fuse_anywayica_nmod(data, 'ncomps', num_comps, 'iva_lambda', lambda_iva);
+if isempty(reference_ica)
+    disp('Computing anyway fusion ...');
+    [~, ~, icasig, A] = ica_fuse_anywayica_nmod(data, 'ncomps', num_comps, algorithm_opts{:});
+else
+    disp('Computing anyway fusion using reference information ...');
+    algorithm_opts{end + 1} = 'reference';
+    algorithm_opts{end + 1} = reference_ica;
+    [~, ~, icasig, A] = ica_fuse_aNywayICAref_Nmod(data, 'ncomps', num_comps, algorithm_opts{:});
+end
 
 fusionInfo.run_analysis.numSubjects = size(data{1}, 1);
 
@@ -161,3 +182,23 @@ disp(['All the analysis information is stored in log file: ', diaryFile]);
 fprintf('\n');
 
 diary('off');
+
+
+function algorithm_opts = convertToCell(algorithm_opts)
+% Convert options to cell
+
+if isstruct(algorithm_opts)
+    if isfield(algorithm_opts, 'lambda_iva')
+        tmp = algorithm_opts.lambda_iva;
+        algorithm_opts.iva_lambda = tmp;
+        algorithm_opts = rmfield(algorithm_opts, 'lambda_iva');
+    end
+    algorithmStruct = algorithm_opts;
+    clear algorithm_opts;
+    fnames = fieldnames(algorithmStruct);
+    algorithm_opts = cell(1, 2*length(fnames));
+    for ii = 1:length(fnames)
+        algorithm_opts{2*ii - 1} = fnames{ii};
+        algorithm_opts{2*ii} = algorithmStruct.(fnames{ii});
+    end
+end
