@@ -108,6 +108,9 @@ set(okHandle, 'callback', {@applyCallback, InputHandle});
 set(cancelHandle, 'callback', {@closeCallback, InputHandle});
 
 
+referenceH = findobj(InputHandle, 'tag', 'reference');
+set(referenceH, 'callback', {@referenceICACallback, InputHandle});
+
 if exist('prefixToSet', 'var')
     prefixH = findobj(InputHandle, 'tag', 'prefix');
     set(prefixH, 'string', prefixToSet);
@@ -855,6 +858,14 @@ try
     
     clear stackInfo;
     
+    
+    ICA_Options = getICAOptions;
+    
+    if (~isempty(ICA_Options))
+        fusionInfo.setup_analysis.algorithm_opts = ICA_Options;
+    end
+    
+    
     fusionInfo.run_analysis.isInitialized = 0;
     
     % save information to a file
@@ -1165,6 +1176,9 @@ switch (inputTag)
         titleStr = 'ICA Algorithm';
         D(1).string = 'Currently, 12 ICA algorithms are available in the toolbox like Infomax, Fast ICA, Erica, Simbec, Evd, Jade Opac, Amuse, SDD ICA, CCICA, Combi, EBM and ERBM.';
         
+    case 'reference'
+        titleStr = 'Reference file';
+        D(1).string = 'If selected yes, reference anyway fusion analysis will be done. Select a reference file containing a vector whose length equals the number of subjects in the analysis';
     otherwise
         
         titleStr = 'Unknown';
@@ -1182,3 +1196,68 @@ function closeCallback(handleObj, event_data, handles)
 % Close the current figure
 delete(handles);
 
+
+function referenceICACallback(hObject, event_data, handles)
+% Reference ICA callback
+
+options_list = cellstr(get(hObject, 'string'));
+options_val = get(hObject, 'value');
+sel_option = deblank(options_list{options_val});
+
+handles_data = get(handles, 'userdata');
+fusionInfo = handles_data.fusionInfo;
+
+numSubjects =  sum(fusionInfo.setup_analysis.numSubjects);
+
+reference  = [];
+if strcmpi (sel_option, 'yes')
+    refFile = ica_fuse_selectEntry('title', 'Select reference file for anyway fusion analysis', 'filter', '*.asc;*.dat;*.txt', 'typeEntity', 'file');
+    reference = ica_fuse_load_ascii_or_mat(refFile);
+    reference = reference(:);
+    if (length(reference) ~= sum(numSubjects))
+        error('Error:Reference', 'Length of reference vector (%d) is not equal to the total number of subjects (%d)', length(reference), sum(numSubjects));
+    end
+end
+fusionInfo.setup_analysis.reference_ica = reference;
+handles_data.fusionInfo = fusionInfo;
+set(handles, 'userdata', handles_data);
+
+function ICA_Options = getICAOptions
+
+
+numParameters = 1;
+
+% dialog Title
+dlg_title = 'Select the Options for the Anyway Fusion algorithm';
+
+% define all the input parameters in a structure
+inputText(numParameters).promptString = 'Select max IVA steps for pre-alignment';
+inputText(numParameters).uiType = 'edit';
+inputText(numParameters).answerString = num2str(50);
+inputText(numParameters).answerType = 'numeric';
+inputText(numParameters).tag = 'ivamaxstep';
+inputText(numParameters).enable = 'on';
+inputText(numParameters).value = 0;
+
+
+numParameters = numParameters + 1;
+
+% define all the input parameters in a structure
+inputText(numParameters).promptString = 'Select lambda regularizer';
+inputText(numParameters).uiType = 'edit';
+inputText(numParameters).answerString = num2str(0.2);
+inputText(numParameters).answerType = 'numeric';
+inputText(numParameters).tag = 'iva_lambda';
+inputText(numParameters).enable = 'on';
+inputText(numParameters).value = 0;
+
+% Input dialog box
+answer = ica_fuse_inputDialog('inputtext', inputText, 'Title', dlg_title, 'handle_visibility', 'on');
+
+% ICA options with flags and the values corresponding to it
+ICA_Options = cell(1, 2*length(answer));
+
+for i = 1:length(answer)
+    ICA_Options{2*i - 1} = inputText(i).tag;
+    ICA_Options{2*i} = answer{i};
+end

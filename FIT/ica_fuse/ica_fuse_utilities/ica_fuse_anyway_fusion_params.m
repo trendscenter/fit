@@ -74,3 +74,16 @@ inputText(numParameters).value = 1;
 inputText(numParameters).read_from_file = 0;
 inputText(numParameters).executeCallback = 1;
 
+
+numParameters = numParameters + 1;
+
+% Number of Independent Components
+inputText(numParameters).promptString =  'Do you want to select reference file?';
+inputText(numParameters).answerString =  char('No', 'Yes');
+inputText(numParameters).uiType = 'popup';
+inputText(numParameters).answerType = 'string';
+inputText(numParameters).tag = 'reference';
+inputText(numParameters).enable = 'inactive';
+inputText(numParameters).value = 1;
+inputText(numParameters).read_from_file = 0;
+inputText(numParameters).executeCallback = 1;

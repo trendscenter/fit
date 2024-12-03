@@ -78,7 +78,7 @@ defaultFigPos(1) = 0.5*sz(3) - 0.5*defaultFigPos(3) + 10;
 % Get params from the output files
 %slices_in_mm = (-40:4:72);
 %threshold = threshold;
-feature_info = fusionInfo.setup_analysis.feature_info;
+feature_info = fusionInfo.run_analysis.feature_info;
 convert_to_z = convertToZStr;
 imageValues = lower(imageValueStr);
 %anatomical_plane = ANATOMICAL_PLANE;
@@ -128,7 +128,7 @@ meanEEG = cell(1, length(featureNames));
 for nFea = 1:length(featureNames)
     
     if (strcmpi(modalities{nFea}, 'eeg'))
-        input_data = ica_fuse_loadData(fusionInfo.setup_analysis.feature_info(nFea).files);
+        input_data = ica_fuse_loadData(feature_info(nFea).files);
         meanData = mean(squeeze(input_data(fusionInfo.run_analysis.mask_ind(nFea).ind, 2, :)), 2);
         meanEEG{nFea} = meanData;
     end
@@ -199,9 +199,9 @@ function dispParaStr = dispPara(paraICAInfo)
 
 
 dispParaStr{1} = '....................................................';
-dispParaStr{end + 1} = ['Feature names: ', ica_fuse_formatStr(cellstr(char(paraICAInfo.setup_analysis.feature_info.feature_name)), ',')];
-dispParaStr{end + 1} = ['Modalities: ', ica_fuse_formatStr(cellstr(char(paraICAInfo.setup_analysis.feature_info.modality)), ',')];
-dispParaStr{end + 1} = ['Number of components: ', num2str([paraICAInfo.setup_analysis.feature_info.comp])];
+dispParaStr{end + 1} = ['Feature names: ', ica_fuse_formatStr(cellstr(char(paraICAInfo.run_analysis.feature_info.feature_name)), ',')];
+dispParaStr{end + 1} = ['Modalities: ', ica_fuse_formatStr(cellstr(char(paraICAInfo.run_analysis.feature_info.modality)), ',')];
+dispParaStr{end + 1} = ['Number of components: ', num2str([paraICAInfo.run_analysis.feature_info.comp])];
 dispParaStr{end + 1} = ['Anatomical file: ', paraICAInfo.run_analysis.anatomical_file];
 dispParaStr{end + 1} = ['Slice Plane: ', upper(paraICAInfo.run_analysis.anatomical_plane(1)), paraICAInfo.run_analysis.anatomical_plane(2:end)];
 dispParaStr{end + 1} = ['Image values: ', upper(paraICAInfo.run_analysis.image_values(1)), paraICAInfo.run_analysis.image_values(2:end)];
