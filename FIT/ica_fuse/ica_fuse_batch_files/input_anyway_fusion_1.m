@@ -47,7 +47,13 @@ numComp = [5, 5];
 scale_components = 'z-scores';
 
 %% Algorithm options
-algorithm_opts.lambda_iva = 0.2;
+algorithm_opts.lambda_iva = 0.19;
+
+%% Reference file name for running anyway fusion analysis with reference
+% Text file should contain vector equal to the number of subjects in the
+% analysis. If running standard anyway fusion, leave it as empty
+reference_ica = 'C:\Users\srrac\gsu\srinivas\data\Fusion_Data\reference.txt';
+
 
 
 %% display

@@ -92,6 +92,14 @@ try
 catch
 end
 
+reference_ica = [];
+try
+    reference_ica = ica_fuse_load_ascii_or_mat(inputData.reference_ica);
+catch
+end
+
+fusionInfo.setup_analysis.reference_ica = reference_ica;
+
 fusionInfo.setup_analysis.feature_info = feature_info;
 fusionInfo.setup_analysis.prefix = prefix;
 fusionInfo.setup_analysis.outputDir = outputDir;
