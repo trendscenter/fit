@@ -93,9 +93,14 @@ catch
 end
 
 reference_ica = [];
-try
-    reference_ica = ica_fuse_load_ascii_or_mat(inputData.reference_ica);
-catch
+if isfield(inputData, 'reference_ica')
+    if ~isempty(inputData.reference_ica)
+        try
+            reference_ica = ica_fuse_load_ascii_or_mat(inputData.reference_ica);
+        catch
+            error('ica_fuse_anyway_fusion_batch.m: problem to read reference_ica variable from input batch script')
+        end
+    end
 end
 
 fusionInfo.setup_analysis.reference_ica = reference_ica;
