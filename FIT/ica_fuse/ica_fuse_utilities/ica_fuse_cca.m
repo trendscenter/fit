@@ -33,6 +33,9 @@ covyx = (Y'*X)/n;
 
 %% Canonical coefficients
 [V1, r] = eig(inv(covxx)*covxy*inv(covyy)*covyx);
+if max(imag(V1(:))) > 0
+    warning(['ica_fuse_warning ' char(datetime) ' ic_fuse_cca.m: CCA equation returned imaginary parts, perhaps due to matrix condition! Matrix condition may improve if you may lower the number of components in the first PCA step']);
+end
 r = diag(r);
 [dd, inds] = sort(r);
 inds = inds(end:-1:1);
