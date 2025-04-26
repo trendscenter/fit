@@ -1,0 +1,586 @@
+function pmlJICA_parametersetup(num_pc1, num_pc2, num_mod, num_fmri, dim_modality,...
+    preProcType, data_path, save_results, gm_mask_path, fmri_mask_path)  
+         
+    load(data_path);  %%% VoxelsxSubjects
+    dataMat=datamatrix_zmeanscaled; %ce042425 
+    clear datamatrix_zmeanscaled; %ce042425   
+   
+    jData='yes';
+    pjICA='yes';
+    groupICA_twostage='yes';
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+
+    % Define input parameters
+    inputText = mygift_define_parameters;  %%% this is mainly for GUI
+    [modalityType] = mygift_get_modality;
+    %--keeps track whether variables have been initialized
+    sesInfo.isInitialized = 0;
+    sesInfo.userInput.groupica_algorithm=0; %% 1: groupICA_twostage
+    sesInfo.userInput.ICAcallcount=1;
+    sesInfo.userInput.mod_name={'gm', 'icn'}; %%% number of modality
+    sesInfo.userInput.datapath=data_path;
+
+    sesInfo.userInput.pwd=save_results; %%C:\myproject\utils\gift_noGUI\pmlJICA_fromgift\results\'; %%% output directory
+    sesInfo.userInput.prefix='tst';  %%% prefix    
+    subjectFile = [sesInfo.userInput.prefix, '_Subject.mat'];
+    subjectFile = fullfile(sesInfo.userInput.pwd, subjectFile);
+    
+    sesInfo.userInput.jData=jData;
+    sesInfo.userInput.pjICA=pjICA;
+    sesInfo.userInput.num_mod=num_mod;
+
+    %%%% what they are
+    % Initialise groups 2 and 3
+    sesInfo.userInput.numOfGroups2 = 0;
+    sesInfo.userInput.numOfGroups3 = 0;
+    sesInfo.userInput.numOfPC3 = 0;
+  
+    
+    numreduc_opt=cellstr(char('2', '1'));
+    numReductionSteps=2;
+    sesInfo.userInput.numReductionSteps=str2num(deblank(numreduc_opt{1}));
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%sesInfo.userInput.param_file=['C:\myproject\utils\gift_noGUI\pmlJICA_fromgift\results\', sesInfo.userInput.prefix, '_ica_parameter_info.mat'];
+    sesInfo.userInput.param_file=[save_results, '/', sesInfo.userInput.prefix, '_ica_parameter_info.mat'];
+    
+    sesInfo.userInput.param_file
+    %%%% don't know why
+     % store these fields regarding dataType, complex naming
+    dataType = 'real'; read_complex_images = 'real&imaginary'; write_complex_images = 'real&imaginary';
+    
+    sesInfo.userInput.dataType = lower(dataType);
+    sesInfo.userInput.read_complex_images = lower(read_complex_images);
+    sesInfo.userInput.write_complex_images = lower(write_complex_images);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    [sesInfo] = mygift_name_complex_images(sesInfo, 'read');
+    
+    
+    %%%% data
+    inputdataMat=dataMat; %%[];
+
+    [files, designMatrix, numOfSub, numOfSess, dataSelMethod, diffTimePoints, spmMatFlag, bids_info] = mygift_dataSelection(...
+            [], inputdataMat, sesInfo.userInput.pwd, sesInfo.userInput.prefix, ...
+            sesInfo.userInput.read_complex_file_naming, sesInfo.userInput.read_complex_images);
+   
+    if isempty(inputdataMat)
+        sesInfo.userInput.files = files;
+        SPMFiles = designMatrix;
+        sesInfo.userInput.dataSelMethod = dataSelMethod;
+        sesInfo.userInput.designMatrix = designMatrix;  %%% if 'diff_sub_diff_sess'
+        sesInfo.userInput.spmMatFlag = spmMatFlag;
+        sesInfo.userInput.diffTimePoints = diffTimePoints;
+        if (~isempty(bids_info))
+            sesInfo.userInput.bids_info = bids_info;
+        end
+    
+        sesInfo.userInput.modality = modalityType;    
+        sesInfo.userInput.designMatrix = SPMFiles;
+        sesInfo.userInput.numOfSub = numOfSub;
+        sesInfo.userInput.numOfSess = numOfSess;
+        numOfDataSets = numOfSub * numOfSess;
+        sesInfo.userInput.numOfGroups1 = numOfDataSets;
+        % number of scans
+        numberOfScans = diffTimePoints(1);
+    else
+
+        numOfSub=size(dataMat, 2)/num_fmri;
+        numOfSess=1;
+        bids_info=[];
+        sesInfo.userInput.files = [];
+        designMatrix.name=[];  %%% due to the same_sub_same_sess
+        SPMFiles = designMatrix;
+        sesInfo.userInput.dataSelMethod = 1;
+        sesInfo.userInput.designMatrix = designMatrix;  %%% if 'diff_sub_diff_sess'
+        sesInfo.userInput.spmMatFlag = 'no';
+        diffTimePoints=zeros(size(1, numOfSub));
+        diffTimePoints(1:numOfSub)=num_fmri;
+        sesInfo.userInput.diffTimePoints = diffTimePoints;
+        if (~isempty(bids_info))
+            sesInfo.userInput.bids_info = bids_info;
+        end
+    
+        sesInfo.userInput.modality = modalityType;    
+        sesInfo.userInput.designMatrix = SPMFiles;
+        sesInfo.userInput.numOfSub = numOfSub;
+        sesInfo.userInput.numOfSess = numOfSess;
+        numOfDataSets = numOfSub * numOfSess;
+        sesInfo.userInput.numOfGroups1 = numOfDataSets;
+        %%% number of scans
+        numberOfScans = diffTimePoints(1);
+        sesInfo.userInput.total_voxels=size(dataMat, 1);
+    end
+    
+    %%%%%%%%%%%%%%%%%%%%%%% load mask  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    if ~isempty(sesInfo.userInput.files) && (strcmpi(sesInfo.userInput.jData, 'no') || strcmpi(sesInfo.userInput.pjICA, 'no'))
+        sesInfo.userInput.default_mask_opts=mygift_default_mask_opts;
+        sesInfo = mygift_update_mask(sesInfo); 
+
+    elseif isempty(sesInfo.userInput.files) && (strcmpi(sesInfo.userInput.jData, 'yes') || strcmpi(sesInfo.userInput.pjICA, 'yes'))
+        
+        mask_path=gm_mask_path;
+        icacomp_mask_path = fmri_mask_path;
+
+        
+        load(mask_path);
+        load(icacomp_mask_path);
+        maskindxgm=reshape(smre_gm_mask, dim_modality);
+        maskindxicn=reshape(icn_mask, dim_modality);
+
+        maskgmicn=cat(1, maskindxgm, maskindxicn);
+        mask_joint=find(maskgmicn);
+        sesInfo.userInput.mask_joint=mask_joint;
+        sesInfo.userInput.mask_ind=mask_joint;
+        sesInfo.userInput.maskmod1=find(smre_gm_mask)';
+        sesInfo.userInput.maskmod2=find(icn_mask)';
+        %%% joint
+        [Vjoint, HInfo_joint] = mygift_returnHInfo('smtest22.nii');        
+        Vjoint.dim=size(maskgmicn);
+        HInfo_joint.DIM=size(maskgmicn);
+        sesInfo.userInput.HInfo_joint=HInfo_joint;
+
+        %%% seperate
+        [Vsep, HInfo_sep] = mygift_returnHInfo('smtest22.nii');
+        sesInfo.userInput.HInfo_sep=HInfo_sep;
+
+    else  %%%% single modality but dataMat. demo code
+        [V, HInfo] = mygift_returnHInfo('smtest22.nii');
+        sesInfo.userInput.HInfo=HInfo;
+
+        %%mask_path='C:\myproject\oasis_data\oasis_gm_reslicemask_53_63_52.mat';
+        mask_path=gm_mask_path;
+
+               
+        load(mask_path);                
+        sesInfo.userInput.mask_ind=find(smre_gm_mask);       
+        
+    end
+    clear maskindxgm maskindxicn;
+   
+    sesInfo.userInput.numOffMRI=num_fmri;
+    
+    %%%%%%%%%%%%%%%%%%%%%%% Estimating IC number %%%%%% %%%%%%%%%%%%%%%%%%%
+    numComp=num_pc1;
+    sesInfo.userInput.numComp=num_pc1;    
+    sesInfo.userInput.mask_ind=mask_joint;
+    mygift_save(sesInfo.userInput.param_file, 'sesInfo');
+
+
+    % can't extract more components than time points
+    if min(diffTimePoints) < numComp
+        numComp = min(diffTimePoints);
+    end
+    % set the number of components
+    sesInfo.userInput.numComp = numComp;           
+    PCBefore = sesInfo.userInput.numComp;
+    
+    if numReductionSteps == 1
+        %% PC1        
+        sesInfo.userInput.numOfPC1 = sesInfo.userInput.numComp;       
+        
+        %% PC2        
+        sesInfo.userInput.numOfPC2 = 0;        
+        
+    elseif numReductionSteps == 2
+        % display the object with PC1 and set the string to PC/IC
+        %% PC1
+        
+        if ~isfield(sesInfo.userInput, 'numOfPC1')
+            
+            sesInfo.userInput.numOfPC1 = PCBefore; %sesInfo.userInput.numComp;
+            
+        else
+            if isempty(sesInfo.userInput.numOfPC1)
+                sesInfo.userInput.numOfPC1 = PCBefore; %sesInfo.userInput.numComp;
+            end
+        end       
+        
+        sesInfo.userInput.numOfPC2 = num_pc2;  
+        numOfGroups2 = 1;
+        sesInfo.userInput.numOfGroups2 = numOfGroups2;
+        
+    end
+    
+    mygift_save(subjectFile, 'files', 'numOfSub', 'numOfSess', 'SPMFiles', 'modalityType');
+
+    %%%%%%%%%%%%%%%%%%%%%%%% Back reconstruction parameter
+
+    backReconOptions = cellstr(char('Regular', 'Spatial-temporal Regression', 'GICA3', 'GICA', 'GIG-ICA', 'Constrained ICA'));    
+    sesInfo.userInput.backReconType=lower(backReconOptions{1}); 
+    sesInfo.userInput.TR=1; 
+    %%% maskopts=cellstr(char('Default Mask', 'Average Mask', 'Select Mask', 'Default&ICV'));
+    sesInfo.userInput.maskFile=[];
+    groupica_opt=cellstr(char('Spatial', 'Temporal'));
+    sesInfo.userInput.group_ica_type=lower(groupica_opt{1});
+
+    
+    preproc_opt=cellstr(char(mygift_preproc_data));
+    sesInfo.userInput.preproc_type=lower(preproc_opt{preProcType});
+
+    groupPCAOpts = cellstr(char('Subject Specific', 'Grand Mean'));
+    sesInfo.userInput.group_pca_type=lower(groupPCAOpts{1});
+
+    pcatype_opt=cellstr(char(mygift_pca_options));
+    sesInfo.userInput.pcaType=lower(pcatype_opt{3});  %%% svd
+    %% sesInfo.userInput.pca_opts = ica_fuse_pca_options(pcaType, handles_data.sesInfo.userInput.pca_opts, 'on'); %% This is for GUI if need update
+    sesInfo.userInput.pca_opts=mygift_pca_options(sesInfo.userInput.pcaType);  %%%% taking only default, update inside the code if necessary
+    
+    
+    sesInfo.userInput.scaleType=2;    
+    sesInfo.userInput.algorithm=22;  %%% pmlJICA:22   
+
+    if ~isempty(sesInfo.userInput.files)
+        parameter_err_chk(sesInfo);
+    end
+
+
+    useTemporalICA=0;
+    
+
+    if ~isempty(sesInfo.userInput.files) && (strcmpi(sesInfo.userInput.jData, 'no') || strcmpi(sesInfo.userInput.pjICA, 'no'))
+        if (~useTemporalICA)
+            if numReductionSteps == 2
+                dataSize = [sesInfo.userInput.numOfPC2, length(sesInfo.userInput.mask_ind)];
+            else
+                dataSize = [sesInfo.userInput.numComp, length(sesInfo.userInput.mask_ind)];
+            end
+        else
+            if numReductionSteps == 2
+                dataSize = [sesInfo.userInput.numOfPC2, sum(sesInfo.userInput.diffTimePoints)];
+            else
+                dataSize = [sesInfo.userInput.numComp, sum(sesInfo.userInput.diffTimePoints)];
+            end
+        end
+    elseif isempty(sesInfo.userInput.files) && (strcmpi(sesInfo.userInput.jData, 'yes') || strcmpi(sesInfo.userInput.pjICA, 'yes'))
+        if (~useTemporalICA)
+            if numReductionSteps == 2
+                dataSize = [sesInfo.userInput.numOfPC2, length(mask_joint)];
+                dataSize1 = [sesInfo.userInput.numOfPC2, length(sesInfo.userInput.maskmod1)];  %%% GM
+                dataSize2 = [sesInfo.userInput.numOfPC2, length(sesInfo.userInput.maskmod2)];  %%% ICN
+            else
+                dataSize = [sesInfo.userInput.numComp, length(mask_joint)];
+                dataSize1 = [sesInfo.userInput.numComp, length(sesInfo.userInput.maskmod1)];  %%% GM
+                dataSize2 = [sesInfo.userInput.numComp, length(sesInfo.userInput.maskmod2)];  %%% ICN
+            end
+        else
+            disp('Not yet.....')
+        end
+    end
+
+
+    sesInfo.userInput.ICA_Options = {};
+    ica_options_visibility = 'on';
+    sesInfo.userInput.ICA_Options = mygift_icaOptions(dataSize, sesInfo.userInput.algorithm, ica_options_visibility);
+
+
+    sesInfo.userInput.write_analysis_steps_in_dirs=0;
+    sesInfo.userInput.conserve_disk_space=0;
+
+    sesInfo.userInput.HInfo=sesInfo.userInput.HInfo_joint;
+    %%%run analysis
+    sesInfo=run_analysis_para(sesInfo);
+
+    mygift_save(sesInfo.userInput.param_file, 'sesInfo');           
+
+
+end
+
+function sesInfo=run_analysis_para(sesInfo)
+  
+    % defaults
+    mygift_defaults;
+    
+    %Screen Color Defaults
+    global BG_COLOR;
+    global FONT_COLOR;
+    global AXES_COLOR;
+    global PARAMETER_INFO_MAT_FILE;
+    global ZIP_IMAGE_FILES;
+    global OPEN_DISPLAY_GUI;
+    global SPM_STATS_WRITE_TAL;
+    global SPM_STATS_AVG_RUNS;
+    
+    % Return modality type
+    modalityType = mygift_get_modality;
+    outputDir = sesInfo.userInput.pwd;
+    sesInfo.outputDir = outputDir;
+    analysisType = 'batch';
+
+
+
+
+    %% Group PCA settings
+    perfOptions = mygift_get_analysis_settings;
+    
+    %%%opts = {'Maximize Performance', 'Less Memory Usage', 'User Specified Settings'};
+    perfType = 'user specified settings';
+    if (isfield(sesInfo.userInput, 'perfType'))
+        perfType = sesInfo.userInput.perfType;
+    end
+    
+    if (isnumeric(perfType))
+        perfType = perfOptions{perfType};
+    end
+    
+    perfType = lower(perfType);
+
+    
+    %%%%%%%%%%%%%%%%%%%%% parameter setting  for after analysis
+    spm_stats_write_tal = 0;
+    if (~isempty(SPM_STATS_WRITE_TAL))
+        spm_stats_write_tal = SPM_STATS_WRITE_TAL;
+    end
+    
+    spm_stats_avg_runs = 0;
+    if (~isempty(SPM_STATS_AVG_RUNS))
+        spm_stats_avg_runs = SPM_STATS_AVG_RUNS;
+    end
+    
+    doSPMStats = 0;
+    
+    if (strcmpi(modalityType, 'fmri'))
+        if (sesInfo.userInput.numOfSub > 1)
+            doSPMStats = 1;
+        elseif ((sesInfo.userInput.numOfSub == 1) && (sesInfo.userInput.numOfSess > 1))
+            if (~spm_stats_avg_runs)
+                doSPMStats = 1;
+            end
+        end
+    end
+    
+    doSPMStats = doSPMStats && spm_stats_write_tal;
+    
+    if (doSPMStats)
+        spmPath = which('spm.m');
+        
+        if isempty(spmPath);
+            error('SPM does not exist on MATLAB path. Set SPM_STATS_WRITE_TAL to 0 if you don''t want to do SPM Stats');
+        end
+        
+        verNum = str2num(strrep(lower(spm('ver')), 'spm', ''));
+        
+        if (verNum < 5)
+            error('SPM stats utility works with SPM5 and higher');
+        end
+    end
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    ica_types = cellstr(mygift_icaAlgorithm);
+    if (~ischar(sesInfo.userInput.algorithm))
+        algorithmName = ica_types{sesInfo.userInput.algorithm};
+    else
+        algorithmName = sesInfo.userInput.algorithm;
+    end
+    
+    if (strcmpi(algorithmName, 'gig-ica'))
+        algorithmName = 'moo-icar';
+    end
+    
+       
+    allSteps = {'all', 'parameter_initialization', 'group_pca', 'calculate_ica', 'back_reconstruct', 'scale_components', 'group_stats', 'resume'};
+    %%% select the operation
+    stepsToRun={'all', 'parameter_initialization', 'group_pca', 'calculate_ica', 'back_reconstruct', 'scale_components', 'group_stats', 'resume'};
+    %%%% Make numeric
+    stepsToRun = lower(cellstr(stepsToRun));
+    [dd, stepsToRun] = intersect(allSteps, stepsToRun);
+
+
+    if any(stepsToRun == 1)
+        stepsToRun = (2:7);
+        userInput = sesInfo.userInput;
+        outputDir = sesInfo.outputDir;
+        if (isfield(sesInfo, 'zipContents'))
+            zipContents = sesInfo.zipContents;
+        end
+        sesInfo = [];
+        sesInfo.userInput = userInput;
+        sesInfo.outputDir = outputDir;
+        if (exist('zipContents', 'var'))
+            sesInfo.zipContents = zipContents;
+        end
+        clear userInput;
+    elseif any(stepsToRun == 8)
+        [resume_info, sesInfo] = mygift_get_resume_info(sesInfo);
+        if (isempty(resume_info))
+            %%disp('Program is here..1')
+            return;
+        else
+            stepsToRun = resume_info.stepsToRun;
+            reductionStepNo = resume_info.groupNo;
+            dataSetNo = resume_info.dataSetNo;
+            val = 1; %%icatb_questionDialog('title', 'Resume Analysis', 'textbody', sprintf(['Toolbox detected part/parts of the analysis to be run. Do you want to run the following step/steps?\n', repmat('\n  %s', 1, length(stepsToRun))], analysisStr{stepsToRun}));
+            if (~val)
+                %%disp('Program is here..2')
+                return;
+            end
+            
+            %% Save parameter file
+            [pp, fileName] = fileparts(sesInfo.userInput.param_file);
+            mygift_save(fullfile(outputDir, [fileName, '.mat']), 'sesInfo');
+            clear fileName;
+            
+        end
+        clear resume_info;
+    end
+    
+    
+    stepsToRun = stepsToRun(:)';
+    
+    % check the user input
+    if (any(stepsToRun == 2))
+        if isfield(sesInfo, 'reduction')
+            sesInfo = rmfield(sesInfo, 'reduction');
+        end
+    end
+    
+    conserve_disk_space = 0;
+    if (isfield(sesInfo.userInput, 'conserve_disk_space'))
+        conserve_disk_space = sesInfo.userInput.conserve_disk_space;
+    end
+    
+    %% Open parallel mode
+    parallel_info.mode = 'serial';
+    parallel_info.num_workers = 4;
+    
+    try
+        parallel_info = sesInfo.userInput.parallel_info;
+    catch
+    end
+    
+    parallelMode = parallel_info.mode;
+    num_workers = parallel_info.num_workers;
+    
+    useTemporalICA = 0;
+    if (strcmpi(modalityType, 'fmri'))
+        try
+            useTemporalICA = strcmpi(sesInfo.userInput.group_ica_type, 'temporal');
+        catch
+        end
+    end
+    
+    if (conserve_disk_space == 1)
+        stepsToRun(stepsToRun == 5) = [];
+        stepsToRun(stepsToRun == 7) = [];
+    end
+    
+    if (useTemporalICA)
+        stepsToRun(stepsToRun == 5) = [];
+    end
+    
+    
+    if (strcmpi(algorithmName, 'moo-icar') || mygift_string_compare(algorithmName, 'constrained'))
+        % No data reduction
+        stepsToRun(stepsToRun == 3) = [];
+        % No back-reconstruction
+        stepsToRun(stepsToRun == 5) = [];
+    end
+    
+    
+    if (isfield(sesInfo.userInput, 'modality'))
+        sesInfo.modality = sesInfo.userInput.modality;
+    else
+        sesInfo.modality = modalityType;
+    end
+    
+    % performing batch analysis
+    output_LogFile = fullfile(sesInfo.outputDir, [sesInfo.userInput.prefix, '_results.log']);
+    
+    % Print output to a file
+    diary(output_LogFile);
+    
+    toolboxNames = ver;
+    parallelCluster= ~isempty(find(strcmpi(cellstr(char(toolboxNames.Name)), 'parallel computing toolbox') == 1));
+       
+    
+    sesInfo.parallel_info = parallel_info; 
+   
+    if (strcmpi(parallelMode, 'parallel') || strcmpi(analysisType, 'batch'))
+        statusHandle = [];
+        disp('Starting Analysis ');
+        fprintf('\n');
+    else
+                
+        % Number of calls per function where most of the time is spent in
+        % analysis
+        numberOfCalls_function = 3;
+        
+        unitPerCompleted = 1/(length(stepsToRun)*numberOfCalls_function);
+        
+        
+        statusData.unitPerCompleted = unitPerCompleted;
+        statusData.perCompleted = 0;        
+    end
+    
+    
+    sesInfo.userInput.perfType = perfType;
+    
+   
+    % Use tic and toc instead of cputime
+    %tic;
+    
+    if (strcmpi(parallelMode, 'parallel') && parallelCluster)
+        if (~isempty(which('parpool')))
+            try
+                parpool(num_workers);
+            catch
+            end
+        else
+            try
+                matlabpool('open', num_workers);
+            catch
+            end
+        end
+    end
+    
+    subjectFile = fullfile(sesInfo.outputDir, [sesInfo.userInput.prefix, 'Subject.mat']);
+    
+    if (~exist(subjectFile, 'file'))
+        files = sesInfo.userInput.files;
+        numOfSub = sesInfo.userInput.numOfSub;
+        numOfSess = sesInfo.userInput.numOfSess;
+        SPMFiles = sesInfo.userInput.designMatrix;
+        mygift_save(subjectFile, 'files', 'numOfSub', 'numOfSess', 'SPMFiles', 'modalityType');
+        clear files SPMFiles numOfSub numOfSess;
+    end
+
+    disp('sesInfo.numReductionSteps .....');    
+    sesInfo.userInput.numReductionSteps
+    if (exist('reductionStepNo', 'var'))
+       reductionStepsToRun = (1:sesInfo.numReductionSteps);
+       reductionStepsToRun(reductionStepsToRun < reductionStepNo) = [];
+       sesInfo.reductionStepsToRun = reductionStepsToRun;
+    end
+
+    
+    
+end
+
+
+function parameter_err_chk(sesInfo)
+    
+    %% check the parameters 
+    
+    tempSess.userInput = sesInfo.userInput;
+    tempSess.inputFiles = sesInfo.userInput.files;
+    tempSess.numReductionSteps = sesInfo.userInput.numReductionSteps;
+    tempSess.diffTimePoints = sesInfo.userInput.diffTimePoints;
+    if (~isfield(sesInfo.userInput, 'mask_ind'))
+        sesInfo = mygift_update_mask(sesInfo);
+    end
+    mask_ind = sesInfo.userInput.mask_ind;
+    tempSess.mask_ind = mask_ind;
+    
+    fprintf('\n');
+    
+    [tempSess] = mygift_dataReductionSetup(tempSess, 'noprint');
+    
+    % check to make sure valid parameters
+    mygift_parameterErrorCheck(tempSess, 'noprint');
+
+    clear tempSess;
+end

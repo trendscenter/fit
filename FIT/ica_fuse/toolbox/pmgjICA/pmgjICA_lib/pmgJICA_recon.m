@@ -1,0 +1,157 @@
+function pmgJICA_recon(numofSub, save_model_info, num_pc1, num_pc2, num_mod, num_fmri, dim_modality, preProceType,...
+    data_path, save_results, gm_mask_path, fmri_mask_path)
+    
+    %% Parameter setup
+    pmlJICA_parametersetup(num_pc1, num_pc2, num_mod, num_fmri, dim_modality,...
+        preProceType, data_path, save_results, gm_mask_path, fmri_mask_path);
+    %%% first run pmlJICA_parametersetup.m
+         
+    %%load('C:\myproject\utils\gift_noGUI\pmlJICA_fromgift\results\tst_ica_parameter_info.mat');
+    load(save_model_info);
+      
+    reduction_sep=1; %%%seperate in the second stage        
+    sesInfo = mygift_parameterInitialization(sesInfo);
+    
+    if (~strcmpi(sesInfo.userInput.modality, 'eeg'))
+        if (isfield(sesInfo.HInfo.V(1), 'private') && ~isa(sesInfo.HInfo.V(1).private, 'ica_fuse_nifti')) %ce031025 icatb_nifti
+            %if (~isa(sesInfo.HInfo.V(1).private, 'icatb_nifti'))
+            [dd, sesInfo.HInfo] = ica_fuse_returnHInfo(sesInfo.HInfo.V(1).fname);            
+            sesInfo.userInput.HInfo = sesInfo.HInfo;
+        end
+    end
+    mygift_save(sesInfo.userInput.param_file, 'sesInfo');
+
+    if isfield(sesInfo, 'outputDir')
+        outputDir = sesInfo.outputDir;
+    else
+        outputDir=sesInfo.userInput.pwd;
+    end
+    preproc_type = sesInfo.preproc_type;
+    
+    
+    mask_ind = sesInfo.mask_ind;
+    numVoxels = length(mask_ind);    
+    gpca_opts = getPCAOpts_m(sesInfo);
+    
+    mask = zeros(sesInfo.HInfo.DIM);
+    mask(sesInfo.mask_ind) = 1;
+    mask = (mask == 1);
+    mask = zeros(sesInfo.HInfo.DIM);
+    mask(sesInfo.mask_ind) = 1;
+    mask = (mask == 1);
+    num_fmri=sesInfo.userInput.numOffMRI;
+   
+    icaAlgo = mygift_icaAlgorithm; % available ICA algorithms
+    algoVal = sesInfo.algorithm; % algorithm index
+    % selected ICA algorithm    
+    ICA_Options = {};
+    % get ica options
+    if (isfield(sesInfo, 'ICA_Options'))
+        ICA_Options = sesInfo.ICA_Options;
+    else
+        if (isfield(sesInfo.userInput, 'ICA_Options'))
+            ICA_Options = sesInfo.userInput.ICA_Options;
+        end
+    end    
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    load(data_path);  %%% VoxelsxSubjects
+    dataMat=datamatrix_zmeanscaled; %ce042425 
+    clear datamatrix_zmeanscaled; %ce042425  
+    
+    
+    %%%%% Rearrange as the algorithm
+    
+    dataGM=dataMat(1:length(sesInfo.userInput.maskmod1), 1:num_fmri:size(dataMat, 2));
+    dataICN=dataMat(length(sesInfo.userInput.maskmod1)+1:end, :);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    
+    %%%%%%%%%%%%%%%%%%%%% Reudction-1 %%%%%%%%%%%%%%%%%%%%%%%%
+    pcaType = gpca_opts{1}.pcaType;
+    pca_opts = gpca_opts{1}.pca_opts;
+    for n_icn=1:num_fmri
+        s_icn=dataICN(:, n_icn:num_fmri:size(dataICN, 2));  %%% ICN1, 2, 3, .... , 53
+        size(s_icn)
+        sgcomsig=[];
+        for n_sub=1:numofSub
+            compsig=[dataGM(:,n_sub); s_icn(:,n_sub)];
+            %%size(compsig)
+            sgcomsig=[sgcomsig,compsig];
+            %%size(sgcomsig) %%% VoxelsxSubjects       
+        end
+        disp('input combination size...')
+        size(sgcomsig)  %%% 143733x4
+        %%size(sgcomsig) %%% VoxelsxSubject
+        numOfPC=sesInfo.reduction(1).numOfPCAfterReduction;
+        numOfPC        
+        pcaType=sesInfo.pcaType;
+        dataGm1=sgcomsig(1:length(sesInfo.userInput.maskmod1), :);   
+        dataCm1=sgcomsig(length(sesInfo.userInput.maskmod1)+1:end, :);  %%%whitesigCm';
+    
+        %%%% Do PCA with whitening:  Input: VoxelXSubejcts
+        if strcmpi(preproc_type, 'none')
+            [pcasig, dewhiteM, Lambda, V, whiteM] = mygift_calculate_pca(dataGm1, numOfPC, 'type', pcaType);    
+            [pcasig2, dewhiteM2, Lambda2, V2, whiteM2] = mygift_calculate_pca(dataCm1, numOfPC, 'type', pcaType);
+        else
+            data1=preprocData_m(dataGm1, sesInfo.userInput.maskmod1, preproc_type, pca_opts.precision);  %%%% data: voxelsxsubjects
+            [pcasig, dewhiteM, Lambda, V, whiteM] = mygift_calculate_pca(data1, numOfPC, 'type', pcaType);
+            data1=preprocData_m(dataCm1, sesInfo.userInput.maskmod2, preproc_type, pca_opts.precision);  %%%% data: voxelsxsubjects
+            [pcasig2, dewhiteM2, Lambda2, V2, whiteM2] = mygift_calculate_pca(data1, numOfPC, 'type', pcaType);
+        end
+        pcasig=[pcasig;pcasig2];
+        dewhiteM=[dewhiteM,dewhiteM2]; %%% subxcomp
+        Lambda=[Lambda;Lambda2];  %%% compxcomp
+        V=[V,V2];  %% subxcomp
+        whiteM=[whiteM;whiteM2];  %% compxsub=> comp: reduced dimension
+    
+        pcaout=fullfile(outputDir, [sesInfo.data_reduction_mat_file, '1-', num2str(n_icn),'.mat']);
+        
+        mygift_save(pcaout, 'pcasig', 'dewhiteM', 'Lambda', 'V', 'whiteM');
+        
+              
+    end
+    clear data1 dataGm1 dataCm1;
+    
+    
+    %%%%%%%%%%%%%%%%%%%%% Reudction-2 %%%%%%%%%%%%%%%%%%%%%%%%
+    pcaType = gpca_opts{2}.pcaType;
+    pca_opts = gpca_opts{2}.pca_opts;
+    numOfPC=sesInfo.reduction(2).numOfPCAfterReduction;
+    numOfPC 
+    %%%% Read data from files
+    files=cell(1, num_fmri); %%%%num_fmri:3, just for test
+    for n_icn=1:num_fmri
+        files{n_icn}=fullfile(outputDir, [sesInfo.data_reduction_mat_file, '1-', num2str(n_icn),'.mat']);   
+        
+    end
+    
+    data2=loadData_m(files);
+    dataGm1=data2(1:length(sesInfo.userInput.maskmod1), :);   
+    dataCm1=data2(length(sesInfo.userInput.maskmod1)+1:end, :);  %%%whitesigCm';
+    
+    %%%%% Do PCA with whitening
+    [pcasig, dewhiteM, Lambda, V, whiteM] = mygift_calculate_pca(dataGm1, numOfPC, 'type', pcaType, 'whiten', 1, 'verbose', 1, 'preproc_type', 'none', ...
+        'pca_options', pca_opts);
+    [pcasig2, dewhiteM2, Lambda2, V2, whiteM2] = mygift_calculate_pca(dataCm1, numOfPC, 'type', pcaType, 'whiten', 1, 'verbose', 1, 'preproc_type', 'none', ...
+        'pca_options', pca_opts);
+    
+    pcasig=[pcasig;pcasig2];
+    dewhiteM=[dewhiteM,dewhiteM2]; %%% subx2comp  %%% for 2 modalities
+    Lambda=[Lambda;Lambda2];  %%% 2compxcomp
+    V=[V,V2];  %% subxcomp
+    whiteM=[whiteM;whiteM2];  %% 2compxsub=> comp: reduced dimension
+    
+    pcaout=fullfile(outputDir, [sesInfo.data_reduction_mat_file, '2-', num2str(1),'.mat']);
+    mygift_save(pcaout, 'pcasig', 'dewhiteM', 'Lambda', 'V', 'whiteM');
+    clear dataGm1 dataCm1;
+    
+    
+    [sesInfo] = mygift_calculateICA_pmlJICA(sesInfo, reduction_sep);
+    
+    %%% dual regression back reconstruction
+    back_recon_dualreg(sesInfo, dataMat)
+    
+end
