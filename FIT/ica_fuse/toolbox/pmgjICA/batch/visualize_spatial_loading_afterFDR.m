@@ -224,8 +224,8 @@ function visualize_spatial_loading_afterFDR(s_batch)
             '<body>\n' ...
             ['  <h1>' s_images_pre ' Montages</h1>\n'] ...
             '  <div class="gallery">\n']);
-        for k = 1:n_ims
-            s_name = [outDir filesep s_images_pre num2str(k)];
+        for k = 1:2:n_ims
+            s_name = [s_images_pre num2str(k)];
             fprintf(fid,'    <img src="%s.jpg" alt="%s.jpg">\n', s_name, s_name);
             fprintf(fid, '<br>');    
         end
