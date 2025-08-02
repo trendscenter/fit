@@ -86,6 +86,14 @@ group2_dir = 'F:\Fusion_Data\fmri_fmri\SZ';
 % contains a character array of file names.
 files = {'F:\Fusion_Data\fmri_fmri\Healthy\tar*.img', 'F:\Fusion_Data\fmri_fmri\Healthy\re*.img';
     'F:\Fusion_Data\fmri_fmri\SZ\tar*.img', 'F:\Fusion_Data\fmri_fmri\SZ\re*.img'};
+% % or setting the files variable file by file similar as below
+% enter the paths and subjects as a matlab string array using double quotes (") for both features such as:
+% str_ar_feat_mri_hc = ["/path/sub001/filet2hc.nii","/path/sub002/filet2hc.nii","/path/sub003/filet2hc.nii"];
+% str_ar_feat_dti_hc = ["/path/sub001/file_dtihc.nii.gz","/path/sub002/file_dtihc.nii.gz","/path/sub003/file_dtihc.nii.gz"];
+% str_ar_feat_mri_sz = ["/path/sub001/filet2sz.nii","/path/sub002/filet2sz.nii","/path/sub003/filet2sz.nii"];
+% str_ar_feat_dti_sz = ["/path/sub001/file_dtisz.nii.gz","/path/sub002/file_dtisz.nii.gz","/path/sub003/file_dtisz.nii.gz"];
+% files = {str_ar_feat_mri_hc, str_ar_feat_dti_hc; str_ar_feat_mri_sz, str_ar_feat_dti_sz};
+
 
 %% Scale components to z-scores
 % Options are 'No' and 'Yes'
@@ -124,3 +132,4 @@ num_ica_runs = 10;
 %% ICA Algorithm
 % Available algorithms are Infomax, FastICA, ...
 algorithm = 2;
+
