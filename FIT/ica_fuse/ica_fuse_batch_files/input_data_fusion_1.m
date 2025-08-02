@@ -87,7 +87,11 @@ group1_dir = 'E:\Fusion_Data\erp_fmri\';
 % Files is a cell array of dimensions no. of groups by features. Each cell
 % contains a character array of file names.
 files = {'E:\test_fusion\fmri_fmri\Aod_sb\v2.0a\beta*.img', 'E:\test_fusion\fmri_fmri\Aod_sb\v2.0a\f*.asc'};
-
+% % or setting the files variable file by file similar as below
+% enter the paths and subjects as a matlab string array using double quotes (") for both features such as:
+% str_ar_feat_mri = ["/path/sub001/filet2.nii","/path/sub002/filet2.nii","/path/sub003/filet2.nii"];
+% str_ar_feat_dti = ["/path/sub001/file_dti.nii.gz","/path/sub002/file_dti.nii.gz","/path/sub003/file_dti.nii.gz"];
+% files = {str_ar_feat_mri, str_ar_feat_dti};
 
 %% Scale components to z-scores
 % Options are 'No' and 'Yes'
@@ -129,3 +133,4 @@ num_ica_runs = 10;
 %% ICA Algorithm
 % Available algorithms are Infomax, FastICA, ...
 algorithm = 1;
+
