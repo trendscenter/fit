@@ -55,6 +55,17 @@ function fusion_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to fusion (see VARARGIN)
 
+% Force all pushbuttons to same color disregarding version of gui editor
+btns = findall(hObject, 'Style', 'pushbutton');
+set(btns, ...
+    'BackgroundColor', [0.8 0.8 0.8], ...
+    'ForegroundColor', [0 0 0], ...
+    'FontWeight', 'normal', ...
+    'FontSize', 11);
+try
+    feature('JavaFigures', 0);
+catch
+end
 
 %ica_fuse_delete_gui({'jointICA_fusion', 'parallel_ica_toolbox', 'CCA_ICA_fusion'});
 
