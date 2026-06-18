@@ -40,6 +40,12 @@ if (length(modality) ~= length(featureNames))
         length(featureNames));
 end
 
+% Option for dynamic FIT preprocessing
+oc_dfit = ica_fuse_cls_dfit(inputFile, outputDir); % Needed to check if used wants dfit
+b_dfit_selected_in_batch_or_gui = oc_dfit.get_b_dfit_selected_in_batch_or_gui();
+if b_dfit_selected_in_batch_or_gui
+    n_ret = oc_dfit.dyn_states_gift2fit_save(); %dfit selected and engaged
+end
 
 % Initialise files
 files = cell(length(groupNames), length(featureNames));
