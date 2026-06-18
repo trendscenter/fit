@@ -42,7 +42,7 @@ classdef ica_fuse_cls_dfit
                             '_sess-' sprintf('%03d', n_sess) ...
                             '_kmnstate-' sprintf('%02d', n_state) '_avgConn.mat'];
                         ica_fuse_save(s_file_save, 'FNCdyn'); 
-                        delete FNCdyn ix_state;
+                        clear FNCdyn ix_state;
                     end
                 end
             end
@@ -62,6 +62,7 @@ classdef ica_fuse_cls_dfit
                 % exist in {prefix}_dfnc_post_process.mat, so skip
                 % everything dynamic
                 obj.b_dfit_selected_in_batch_or_gui = 0;
+                return
             end
 
             %Simple validation and initiation
@@ -73,7 +74,7 @@ classdef ica_fuse_cls_dfit
             try
                 load(stru_tmp.dynfitFileGiftDfncPostProcessMat);
                 obj.clusterInfo = clusterInfo;
-                delete clusterInfo FNCamp FNCcm meta_states_info sgica;
+                clear clusterInfo FNCamp FNCcm meta_states_info sgica;
             catch
                 error(['Problems reading GIFT file for dynamic FIT:' s_gift_param]);
             end
