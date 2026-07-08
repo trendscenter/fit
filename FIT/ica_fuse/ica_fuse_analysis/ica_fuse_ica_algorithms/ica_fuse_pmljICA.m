@@ -1,7 +1,7 @@
 
 
 %%%function [weights, sphere, bias, signs, lrates, activations]=my_jICA(data, ncomps, weights, chans, frames)
-function [weights, lrate, sphere, data, signs, bias]=my_jICA(data, ncomps, weights, chans, frames, lrate, maxsteps)
+function [weights, lrate, sphere, data, signs, bias]=ica_fuse_pmljICA(data, ncomps, weights, chans, frames, lrate, maxsteps)
 
 degconst = 180./pi;
 datalength = frames;
