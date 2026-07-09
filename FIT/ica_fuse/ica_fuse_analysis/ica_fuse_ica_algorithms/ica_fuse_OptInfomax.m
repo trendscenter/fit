@@ -100,6 +100,7 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
     DEFAULT_POSACTFLAG   = 'on';      % use posact()
     DEFAULT_VERBOSE      = 1;         % write ascii info to calling screen
     DEFAULT_BIASFLAG     = 1;         % default to using bias in the ICA update rule
+    wts_passed = 0;                   % flag weights passed as argument
     %                                 
     %%%%%%%%%%%%%%%%%%%%%%% Set up keyword default values %%%%%%%%%%%%%%%%%%%%%%%%%
     %
@@ -143,7 +144,16 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
        end
        Keyword = lower(Keyword); % convert upper or mixed case to lower
        
-       if strcmp(Keyword,'ncomps')
+       if strcmp(Keyword,'weights') | strcmp(Keyword,'weight')
+          if isstr(Value)
+             fprintf(...
+                'runica(): weights value must be a weight matrix or sphere')
+             return
+          else
+             weights = Value;
+             wts_passed =1;
+          end
+       elseif strcmp(Keyword,'ncomps')
           if isstr(Value)
              fprintf('runica(): ncomps value must be an integer')
              return
