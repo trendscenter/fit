@@ -1,5 +1,8 @@
 function ica_fuse_batch_file(inputFile)
 % Batch file for data fusion
+% run using following syntax:
+% ica_fuse_batch_file('input_*.m')
+% How to run Dynamic FNC Fusion Workflow please see ica_fuse_batch_file_dfuse_final.m
 
 
 [pathstr, file_name, extn] = fileparts(inputFile);
