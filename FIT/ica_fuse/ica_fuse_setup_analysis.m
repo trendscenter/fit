@@ -66,6 +66,12 @@ if ~isempty(inputFile)
     clear inputData;
     % set the input text for controls
     
+    oc_dfit = ica_fuse_cls_dfit(inputFile, outputDir);
+    b_dfit_selected_in_batch_or_gui = oc_dfit.get_b_dfit_selected_in_batch_or_gui();
+    if b_dfit_selected_in_batch_or_gui
+        n_ret = oc_dfit.dyn_states_gift2fit_save();
+    end
+
 else
     
     handles_data.analysisType = 'gui';

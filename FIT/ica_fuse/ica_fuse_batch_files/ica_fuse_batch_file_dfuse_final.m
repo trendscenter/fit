@@ -44,7 +44,7 @@ function ica_fuse_batch_file_dfuse_final(inputFile)
 % 2. Edit input_fuse_dfnc_state1.m and update at least the following
 %    variables:
 %
-%      outputDir='/location/I/saved/GIFT';
+%      outputDir='/location/to/save/fusionresults/';
 %
 %      dynfitFileGiftDfncPostProcessMat = ...
 %          '/location/I/saved/GIFT/{prefix}_dfnc_post_process.mat';
@@ -56,8 +56,10 @@ function ica_fuse_batch_file_dfuse_final(inputFile)
 %      modality={'fmri','smri'};
 %
 %      files={ ...
-%          '/location/I/saved/GIFT/dfit/*state-01_avgConn.mat', ...
+%          [outputDir '/dfit/*state-01_avgConn.mat', ...
 %          '/location/I/saved/GMV/*_sMRI.mat'};
+%      % Asterisks (*) above denotes subject IDs, which has to match across modalities.
+%      % Make sure the dir before /dfit/ is the outputDir (from above).
 %
 %      numComp=5;
 %

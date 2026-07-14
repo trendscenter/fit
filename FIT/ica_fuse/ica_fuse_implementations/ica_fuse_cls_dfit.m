@@ -8,7 +8,7 @@ classdef ica_fuse_cls_dfit
     properties
         clusterInfo
         s_fit_outputdir
-        s_prefix
+        s_prefix_gift
         s_gift_path
         b_dfit_selected_in_batch_or_gui
     end
@@ -22,7 +22,7 @@ classdef ica_fuse_cls_dfit
             ix_states = 1:size(obj.clusterInfo.Call,1);
             for n_subj = ix_subj
                 for n_sess = ix_sess
-                    tmp = load([obj.s_gift_path filesep obj.s_prefix ...
+                    tmp = load([obj.s_gift_path filesep obj.s_prefix_gift ...
                         '_dfnc_sub_' sprintf('%03d', n_subj) '_sess_' ...
                         sprintf('%03d', n_sess) '_results']);
                     con_states = squeeze(obj.clusterInfo.states(n_subj,n_sess,:));
@@ -37,7 +37,7 @@ classdef ica_fuse_cls_dfit
                             FNCdyn = mean(tmp.FNCdyn(ix_state,:))';
                         end
                         s_file_save = [obj.s_fit_outputdir filesep ...
-                            'dfit' filesep obj.s_prefix ...
+                            'dfit' filesep obj.s_prefix_gift ...
                             '_sub-' sprintf('%03d', n_subj) ...
                             '_sess-' sprintf('%03d', n_sess) ...
                             '_kmnstate-' sprintf('%02d', n_state) '_avgConn.mat'];
@@ -82,8 +82,8 @@ classdef ica_fuse_cls_dfit
             [s_gift_path, s_name, s_ext] = fileparts(stru_tmp.dynfitFileGiftDfncPostProcessMat);
             s_suffix = lower('_dfnc_post_process');
             if endsWith(lower(s_name), s_suffix)
-                s_prefix = s_name(1:end-length(s_suffix));
-                obj.s_prefix = s_prefix;
+                s_prefix_gift = s_name(1:end-length(s_suffix));
+                obj.s_prefix_gift = s_prefix_gift;
                 obj.s_gift_path = s_gift_path;
             else
                 error('dynfitFileGiftDfncPostProcessMat does not end with: _dfnc_post_process.mat');
@@ -103,21 +103,18 @@ classdef ica_fuse_cls_dfit
         end
 
         function n_ret = dyn_matching_components_across_states(obj)
+            n_ret = 0;
             n_states = size(obj.clusterInfo.Call,1);
             
-            tmp_files = dir(fullfile(obj.s_fit_outputdir, [obj.s_prefix '_state1_*comp_br_comb_1.mat']));                                 
+            tmp_files = dir(fullfile(obj.s_fit_outputdir, '*_state1_*comp_br_comb_1.mat'));                                 
             s_tmp = load([tmp_files(1).folder filesep tmp_files(1).name]);
 % %             clear tmp_files
-% %             [obj.s_prefix  '_state' num2str(1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc']
+% %             [obj.s_prefix_gift  '_state' num2str(1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc']
             
             n_comps = size(s_tmp.icasig,1);
-            clear s_tmp tmp_files;
             match_modality = "struct"; % options: "struct", "dFNC"
-            outpath = [obj.s_fit_outputdir filesep 'post_processing/'];
-            try
-                mkdir outpath;
-            catch
-            end
+            outpath = [tmp_files(1).folder filesep];
+            clear s_tmp tmp_files;
 
             % all pairs of states to perform cross-state component matching
             state_pairs = nchoosek(1:n_states, 2);
@@ -144,16 +141,16 @@ classdef ica_fuse_cls_dfit
                     for comp1 = 1:n_comps
 
                         % feature_2 is the structural feature based on our batch file implementation
-                        clear tmp_files; s_file_wild_card=[obj.s_prefix  '_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc'];
+                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc'];
                         tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                       
                         if ~(size(tmp_files,1) == 1)
                             error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
-                        end                        
+                        end         
 %                         s1 = load(append("demo_results/dynamicFusion_demo_dFNC_state",string(state1),"_GMV_5comp_joint_comp_ica_feature_2_", sprintf('%03d', comp1),".asc"));
                         s1 = load([tmp_files(1).folder filesep tmp_files(1).name]);
                         % loop through all comps in state 2
                         for comp2 = 1:n_comps
-                            clear tmp_files; s_file_wild_card=[obj.s_prefix  '_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp2) '.asc'];
+                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp2) '.asc'];
                             tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                            
                             if ~(size(tmp_files,1) == 1)
                                 error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
@@ -222,7 +219,7 @@ classdef ica_fuse_cls_dfit
                     for comp1 = 1:n_comps
 
                         % feature_2 is the structural feature based on our batch file implementation
-                        clear tmp_files; s_file_wild_card=[obj.s_prefix  '_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp1) '.asc'];
+                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp1) '.asc'];
                         tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                       
                         if ~(size(tmp_files,1) == 1)
                             error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
@@ -230,7 +227,7 @@ classdef ica_fuse_cls_dfit
                         s1 = load([tmp_files(1).folder filesep tmp_files(1).name]);
                         % loop through all comps in state 2
                         for comp2 = 1:n_comps
-                            clear tmp_files; s_file_wild_card=[obj.s_prefix  '_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp2) '.asc'];
+                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp2) '.asc'];
                             tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                            
                             if ~(size(tmp_files,1) == 1)
                                 error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
@@ -288,6 +285,11 @@ classdef ica_fuse_cls_dfit
 
                 % save results
                 save(append(outpath,"dynamicFusion_postprocessing_component_matches_dFNC.mat"), "comp_matches", "matched_corrs");
+                disp('Files with info about what components match across states are:');
+                disp(append(outpath,"dynamicFusion_postprocessing_component_matches_struct.mat"));
+                disp(append(outpath,"dynamicFusion_postprocessing_component_matches_dFNC.mat"));
+                disp('All steps of Dynamic Fusion are complete!')
+                n_ret = 1;
         end        
         
         function obj = set_b_dfit_selected_in_batch_or_gui(obj, newValue)
