@@ -30,7 +30,7 @@ try
     type_pca = fusionInfo.run_analysis.type_pca;
     reference = fusionInfo.run_analysis.reference;
 catch
-    
+
 end
 
 disp('-----------------------------------------------------------------------------------------------');
@@ -55,7 +55,7 @@ modalities = modalities(allComb{comb_number});
 dims = fusionInfo.run_analysis.newDims(allComb{comb_number});
 
 if (strcmpi(ica_type, 'iva-g') || strcmpi(ica_type, 'iva-ggd'))
-    
+
     V = cell(1, length(modalities));
     Lambda = V;
     whitesig = V;
@@ -72,41 +72,21 @@ if (strcmpi(ica_type, 'iva-g') || strcmpi(ica_type, 'iva-ggd'))
         end
         [V{nM}, Lambda{nM}, whitesig{nM}, whiteM{nM}, dewhiteM{nM}] = ica_fuse_calculate_pca(dat, numComp);
     end
-    
+
     ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
-    
+
 else
-    
-    
-    
+
+
+
     if (strcmpi(type_pca, 'standard') || strcmpi(type_pca, 'reference'))
 
-        if (strcmpi(ica_type, 'pmljica'))
+        % Do PCA and whitening
+        [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);
+        ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
 
-            %% PCA combined for both modalities for all variables except from whitesig since that
-            % needs to be calc separate with modality. 
-            [V, Lambda, whitesigCombined, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);           
-
-            %% Do PCA separately between modalities for whitesig for pmljICA
-            matMod1 = data( :,1:size(data, 2)/2);
-            [V_mod1, Lambda_mod1, whitesig_mod1, whiteM_mod1, dewhiteM_mod1] = ica_fuse_calculate_pca(matMod1, numComp, type_pca, reference);
- 
-            matMod2 = data(:,(size(data, 2)/2)+1:end);
-            [V_mod2, Lambda_mod2, whitesig_mod2, whiteM_mod2, dewhiteM_mod2] = ica_fuse_calculate_pca(matMod2, numComp, type_pca, reference);
-            whitesig = [whitesig_mod1 whitesig_mod2];
-
-            ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName', 'whitesigCombined'); %whitesig is different for the pmljICA compared to other algos. aslo saving the combined whitesig that other algos use
-            
-        else
-        
-            %% Do PCA and whitening
-            [V, Lambda, whitesig, whiteM, dewhiteM] = ica_fuse_calculate_pca(data, numComp, type_pca, reference);
-            ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
-        end
-        
-        
     else
-        
+
         if (~strcmpi(type_pca, 'mccar'))
             try
                 numPC = fusionInfo.run_analysis.cca_opts.numPC;
@@ -114,20 +94,20 @@ else
                 numPC = [fusionInfo.run_analysis.cca_opts.numPC1, fusionInfo.run_analysis.cca_opts.numPC2];
             end
         end
-        
+
         if (strcmpi(type_pca, 'cca') && all(fusionInfo.run_analysis.newDims == fusionInfo.run_analysis.newDims(1)))
-            
-            
+
+
             disp('Doing individual PCAs on the features ...');
-            
+
             %% Do PCA on feature 1
             [V1, Lambda1, whitesig1, whiteM1] = preCCA(data(:, 1:fusionInfo.run_analysis.newDims(1)), numPC(1));
-            
+
             %% Do PCA 2 on feature 2
             [V2, Lambda2, whitesig2, whiteM2] = preCCA(data(:, fusionInfo.run_analysis.newDims(1) + 1:end), numPC(2));
-            
+
             disp('Doing CCA on the PCA reduced matrices ...');
-            
+
             %% PCA on the correlation matrices of feature 1 and 2
             [V, Lambda, whitesig, whiteM] = ica_fuse_calculate_pca(whitesig1*whitesig2', numComp);
             D = sum(whitesig(1, :).^2);
@@ -137,9 +117,9 @@ else
             whitesig = [E1*whitesig1, E2*whitesig2];
             whiteM = {E1*whiteM1, E2*whiteM2};
             dewhiteM = {pinv(whiteM{1}), pinv(whiteM{2})};
-            
+
             ica_fuse_save(pcaFile, 'V', 'Lambda', 'whitesig', 'whiteM', 'dewhiteM', 'E1', 'E2', 'combinationName');
-            
+
         elseif (strcmpi(type_pca, 'mccar'))
             %% MCCAR
             %opts.numc = numComp;
@@ -154,19 +134,19 @@ else
                     dat{nM}  = ica_fuse_remove_mean(dat{nM});
                 end
             end
-            
+
             [dewhiteM, whitesig, whiteM] = ica_fuse_mcca_reference(dat, numComp, reference);
             ica_fuse_save(pcaFile, 'whitesig', 'dewhiteM', 'whiteM', 'combinationName');
-            
+
         else
-            
+
             %% Use MCCA
             disp('Doing MCCA on the features ...');
-            
+
             if (fusionInfo.run_analysis.numFeatures == 2)
                 [C1, C2, E1, E2, Lambda] = ica_fuse_mcca(data(:, 1:fusionInfo.run_analysis.newDims(1)), data(:, fusionInfo.run_analysis.newDims(1) + 1:end), ...
                     numPC(1), numPC(2), numComp, cellstr(char(fusionInfo.run_analysis.dataInfo(1).feature.name)));
-                
+
                 whitesig = [C1, C2];
                 dewhiteM = {data(:, 1:fusionInfo.run_analysis.newDims(1))*pinv(C1), data(:, fusionInfo.run_analysis.newDims(1) + 1:end)*pinv(C2)};
                 whiteM = {pinv(dewhiteM{1}), pinv(dewhiteM{2})};
@@ -175,12 +155,12 @@ else
                 [whitesig, dewhiteM, whiteM] = ica_fuse_mccaN(data, fusionInfo.run_analysis.newDims, numPC, numComp, featureNames);
                 ica_fuse_save(pcaFile, 'whitesig', 'whiteM', 'dewhiteM', 'combinationName');
             end
-            
+
         end
-        
-        
+
+
     end
-    
+
 end
 
 disp(['Data reduction information for ', combinationName, ' is saved in ', pcaFile]);

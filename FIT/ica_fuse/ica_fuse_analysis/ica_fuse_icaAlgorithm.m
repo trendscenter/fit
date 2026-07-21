@@ -19,7 +19,9 @@ bPmljicaAvailable = 0;
 [struStack,I] = dbstack;
 iStackSize = size(struStack,1);
 for i = 1:iStackSize
-    if strcmpi(struStack(i).file,'jointICA_fusion.m')
+    if strcmpi('jointICA_fusion.m', struStack(i).file)
+        bPmljicaAvailable = 1;
+    elseif strcmpi('ica_fuse_batch_file.m', struStack(i).file)
         bPmljicaAvailable = 1;
     end
 end
@@ -170,8 +172,22 @@ if (nargin > 0 && nargin <= 3)
             [W, A, icasig_tmp]  = getSig(W, data);
 
         case 'pmljica'
-            %% parallel multi link joint ICA
-            [W, sphere] = ica_fuse_OptInfomax(data, ICA_Options{1:length(ICA_Options)});
+            % Pull ncomps from ICA_Options so it matches whatever the batch file/GUI set,
+            % instead of a hardcoded value.
+            ncomps_pmljica = [];
+            for optIdx = 1:2:length(ICA_Options)
+                if strcmpi(ICA_Options{optIdx}, 'ncomps')
+                    ncomps_pmljica = ICA_Options{optIdx+1};
+                    break;
+                end
+            end
+            if isempty(ncomps_pmljica)
+                ncomps_pmljica = size(data, 1);   % fallback if ncomps wasn't specified
+                fprintf('pmljICA: ncomps not found in ICA_Options, defaulting to %d (size(data,1)).\n', ncomps_pmljica);
+            end
+
+            [W_regular_joint, dont_use] = ica_fuse_runica(data, 'block', [202], 'stop', [1.0000e-06], 'weights', [0], 'lrate', [0.0093], 'maxsteps', [512], 'anneal', [0.9000], 'annealdeg', [60], 'momentum', [0], 'extended', [0], 'ncomps', [ncomps_pmljica], 'posact', 'on', 'sphering', 'off', 'bias', 'on', 'verbose', 'on');
+            [W, sphere] = ica_fuse_OptInfomax(data, 'weights', W_regular_joint, ICA_Options{1:length(ICA_Options)});
             W = W*sphere;
             icasig_tmp = W*data;
             A = pinv(W);

@@ -65,7 +65,7 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
        return
     end
     
-    [chans frames] = size(dataSeparate); % determine the data size
+    [chans, frames] = size(dataSeparate); % determine the data size
     urchans = chans;  % remember original data channels 
     datalength = frames;
     %
@@ -100,7 +100,6 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
     DEFAULT_POSACTFLAG   = 'on';      % use posact()
     DEFAULT_VERBOSE      = 1;         % write ascii info to calling screen
     DEFAULT_BIASFLAG     = 1;         % default to using bias in the ICA update rule
-    wts_passed = 0;                   % flag weights passed as argument
     %                                 
     %%%%%%%%%%%%%%%%%%%%%%% Set up keyword default values %%%%%%%%%%%%%%%%%%%%%%%%%
     %
@@ -144,16 +143,7 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
        end
        Keyword = lower(Keyword); % convert upper or mixed case to lower
        
-       if strcmp(Keyword,'weights') | strcmp(Keyword,'weight')
-          if isstr(Value)
-             fprintf(...
-                'runica(): weights value must be a weight matrix or sphere')
-             return
-          else
-             weights = Value;
-             wts_passed =1;
-          end
-       elseif strcmp(Keyword,'ncomps')
+       if strcmp(Keyword,'ncomps')
           if isstr(Value)
              fprintf('runica(): ncomps value must be an integer')
              return
@@ -258,21 +248,28 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
                 end
              end
           end
-       elseif strcmp(Keyword,'verbose') 
-          if ~isstr(Value)
-             fprintf('runica(): verbose flag value must be on or off')
-             return
-          elseif strcmp(Value,'on'),
-             verbose = 1; 
-          elseif strcmp(Value,'off'),
-             verbose = 0; 
-          else
-             fprintf('runica(): verbose flag value must be on or off')
-             return
-          end
+       elseif strcmp(Keyword,'verbose')
+           if ~isstr(Value)
+               fprintf('runica(): verbose flag value must be on or off')
+               return
+           elseif strcmp(Value,'on'),
+               verbose = 1;
+           elseif strcmp(Value,'off'),
+               verbose = 0;
+           else
+               fprintf('runica(): verbose flag value must be on or off')
+               return
+           end
+       elseif strcmp(Keyword,'weights') | strcmp(Keyword,'weight')
+           if isstr(Value)
+               fprintf('runica(): weights value must be a matrix')
+               return
+           end
+           weights = Value;
+           wts_passed = 1;
        else
-          fprintf('runica(): unknown flag')
-          return
+           fprintf('runica(): unknown flag')
+           return
        end
     end
     %
@@ -291,10 +288,6 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
     dataCm=whitesigCm';
     [chansCm, framesCm] = size(dataCm); % determine the data size
     urchansCm = chansCm;
-    
-    
-    %%% initialize weights
-    weights = randsmall(ncomps,chansGm);
         
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -311,7 +304,10 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
     posactflag='on';
     wts_passed=0;
     
-    figGauge = figure,
+    if ~ica_fuse_b_batchmode()
+        % Show progressbar for GUI
+        figGauge = figure;     
+    end
     
     while pass<=max_steps
         if pass==1
@@ -328,14 +324,17 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
             maxsteps=20;
         elseif pass>=50
             maxsteps=maxsteps+2;
-        end
-        
-        [W1, lrate, ~] = ica_fuse_pmljICA(dataGm, ncomps, weights, chansGm, framesGm, lrate, maxsteps);
-        weights=W1; 
-        
-        [W2, lrate, sphere, data, signs, bias] = ica_fuse_pmljICA(dataCm, ncomps, weights, chansCm, framesCm, lrate, maxsteps);
+        end       
+
+        Wold = weights;
+        % fprintf('size(Wold) = %s\n', mat2str(size(Wold)));
+        % fprintf('chansGm = %d, chansCm = %d, ncomps = %d\n', chansGm, chansCm, ncomps);
+
+        [W1, lrate1, ~] = ica_fuse_pmljICA(dataGm, ncomps, Wold, chansGm, framesGm, lrate, maxsteps);
+        [W2, lrate2, ~, ~, ~, ~] = ica_fuse_pmljICA(dataCm, ncomps, Wold, chansCm, framesCm, lrate, maxsteps);
 
         weights=(W1+W2)./num_mods;
+        lrate = (lrate1 + lrate2)/2;
     
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         if pass==1
@@ -401,19 +400,22 @@ function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3
            pass=max_steps+1;                  % stop when weights stabilize
         elseif change > DEFAULT_BLOWUP,      % if weights blow up,
            lrate=lrate*DEFAULT_BLOWUP_FAC;    % keep trying 
-        end; 
+        end 
     end
-    close(figGauge);
+
+    if ~ica_fuse_b_batchmode()
+        close(figGauge);
+    end
     if verbose==1
         hold off;
-    end    
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     mu1=mean(dataSeparate);  
     
     type_pca='standard';
-    load(sPcaFile, 'whitesigCombined', 'dewhiteM');
-    whitesigGmCm = whitesigCombined';
+    load(sPcaFile, 'whitesig', 'dewhiteM');
+    whitesigGmCm = whitesig'; %whitesig is actually whitesigCombined
     dewhiteMGmCm = dewhiteM';
     
     dataGmCm=whitesigGmCm';
