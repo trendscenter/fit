@@ -10,20 +10,21 @@
 %   not have direct access to the analysis configuration.
 
 % Cyrus Erik Eierud, TReNDS 7/21/26
-
-b_batch_true = false;
-
-struStack = dbstack;
-
-for i = 1:numel(struStack)
-
-    if strcmpi(struStack(i).file, 'ica_fuse_batch_file.m') || ...
-       strcmpi(struStack(i).file, 'ica_fuse_anyway_fusion_batch') || ...
-       strcmpi(struStack(i).file, 'ica_fuse_batch_file_dfuse_final.m')
-
-        b_batch_true = true;
-        return;
+function b_batch_true=ica_fuse_b_batchmode()
+    
+    b_batch_true = false;
+    
+    struStack = dbstack;
+    
+    for i = 1:numel(struStack)
+    
+        if strcmpi(struStack(i).file, 'ica_fuse_batch_file.m') || ...
+           strcmpi(struStack(i).file, 'ica_fuse_anyway_fusion_batch') || ...
+           strcmpi(struStack(i).file, 'ica_fuse_batch_file_dfuse_final.m')
+    
+            b_batch_true = true;
+            return;
+        end
+    
     end
-
-end
 
