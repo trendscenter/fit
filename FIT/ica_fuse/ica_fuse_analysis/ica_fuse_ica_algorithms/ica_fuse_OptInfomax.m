@@ -1,62 +1,58 @@
-% 082523, Cyrus Eierud
-% Below is a new algorithm developed by Ibrahim Khalilullah
-% the new algo may use parts of Infomax, but also uses machine learning
+% Date 8/25/23
 %
-% runica() - Perform Independent Component Analysis (ICA) decomposition
-%            of psychophysiological data using the infomax ICA algorithm of 
-%            Bell & Sejnowski (1995) with the natural gradient feature 
-%            of Amari, Cichocki & Yang, the extended-ICA algorithm 
-%            of Lee, Girolami & Sejnowski, PCA dimension reduction,
-%            and/or specgram() preprocessing (M. Zibulevsky).
+% ica_fuse_OptInfomax() - Joint Infomax ICA optimization for two modalities.
+%                         developed by Ibrahim Khalilullah
+%
+% This implementation is based on the Infomax ICA algorithm of
+% Bell & Sejnowski (1995), with natural-gradient optimization based on
+% Amari, Cichocki & Yang and extended-ICA concepts from Lee et al.
+%
+% The algorithm extends the standard Infomax approach to two modalities.
+% Infomax updates are computed separately for each modality, after which
+% the resulting weight matrices are averaged to obtain a common set of
+% ICA weights. This joint optimization is repeated until convergence.
+%
 % Usage:
-%      simply >> [weights,sphere] = runica(data);
-%       or    
-%        else >> [weights,sphere,activations,bias,signs,lrates] ...
-%                                 = runica(data,'Key1',Value1',...);
-% Input_Variable:
 %
-% data        = input data (chans,frames*epochs). 
-%               Note: If data consists of multiple discontinuous epochs, 
-%               each epoch should be separately baseline-zero'd using:
-%                  >> data = rmbase(data,frames,basevector);
+%   [weights, sphereGmCm] = ica_fuse_OptInfomax(dataSeparate, ...
+%                              'Key1', Value1, 'Key2', Value2, ...);
 %
-% Optional_Keywords       Keyword_Values                  Default_Values
+% Inputs:
 %
-% 'ncomps'    = [N] number of ICA components to compute (default -> chans)
-%               using rectangular ICA decomposition
-% 'pca'       = [N] decompose a principal component     (default -> 0=off)
-%               subspace of the data. Value is the number of PCs to retain.
-% 'lrate'     = [rate] initial ICA learning rate (<< 1) (default -> heuristic)
-% 'anneal'    = annealing constant (0,1] (defaults -> 0.90, or 0.98, extended)
-%                         controls speed of convergence
-% 'stop'      = [f] stop training when weight-change < this (default -> 1e-6)
-% 'maxsteps'  = [N] max number of ICA training steps    (default -> 512)
-% 'bias'      = ['on'/'off'] perform bias adjustment    (default -> 'on')
-% 'momentum'  = [0<f<1] training momentum               (default -> 0)
-% 'extended'  = [N] perform tanh() "extended-ICA" with sign estimation 
-%               every N training blocks. If N < 0, fix number of sub-Gaussian
-%               components to -N [faster than N>0]      (default|0 -> off)
-% 'posact'    = make all component activations net-positive(default 'on'}
-% 'verbose'   = give ascii messages ('on'/'off')        (default -> 'on')
+% dataSeparate = Combined data from two modalities. The first
+%                iMod1LenOnes rows correspond to modality 1 and the
+%                remaining rows correspond to modality 2.
 %
-% Output_Variables [RO = output in reverse order of projected mean variance 
-%                        unless starting weight matrix passed ('weights' above)]
+% Optional keyword/value pairs:
 %
-% weights     = ICA weight matrix (comps,chans)     [RO]
-% sphere      = data sphering matrix (chans,chans) = spher(data)
-%               Note: unmixing_matrix = weights*sphere {sphering off -> eye(chans)}
-% activations = activation time courses of the output components (ncomps,frames*epochs)
-% bias        = vector of final (ncomps) online bias [RO]    (default = zeros())
-% signs       = extended-ICA signs for components    [RO]    (default = ones())
-%                   [-1 = sub-Gaussian; 1 = super-Gaussian]
-% lrates      = vector of learning rates used at each training step
+% 'ncomps'       = Number of ICA components to estimate.
+% 'pca'          = Number of principal components to retain.
+% 'lrate'        = Initial Infomax learning rate.
+% 'stop'         = Stop when the weight change falls below this value.
+% 'maxsteps'     = Maximum number of joint optimization iterations.
+% 'anneal'       = Learning-rate annealing factor.
+% 'extended'     = Enable extended Infomax ICA.
+% 'sPcaFile'     = MAT-file containing PCA whitening information.
+% 'iMod1LenOnes' = Number of rows belonging to modality 1.
+% 'verbose'      = 'on' or 'off'.
+% 'weights'      = Optional initial ICA weight matrix.
 %
-
-% Toolbox Citation:
+% Outputs:
 %
-% Makeig, Scott et al. "ICA Toolbox for Psychophysiological Research (version 3.4)". 
-% WWW Site, Computational Neurobiology Laboratory, The Salk Institute for Biological 
-% Studies <www.cnl.salk.edu/~ica.html>, 1999. [World Wide Web Publication]. 
+% weights        = Final jointly optimized ICA weight matrix.
+% sphereGmCm     = Sphering matrix for the combined multimodal data.
+%
+% References:
+%
+% Bell AJ, Sejnowski TJ. An information-maximization approach to blind
+% separation and blind deconvolution. Neural Computation. 1995;7:1129-1159.
+%
+% Amari S, Cichocki A, Yang HH. A new learning algorithm for blind signal
+% separation. Advances in Neural Information Processing Systems. 1996.
+%
+% Lee TW, Girolami M, Sejnowski TJ. Independent component analysis using
+% an extended Infomax algorithm for mixed sub-Gaussian and super-Gaussian
+% sources. Neural Computation. 1999;11:417-441.
 %
 
 function [weights,sphereGmCm]=ica_fuse_OptInfomax(dataSeparate,p1,v1,p2,v2,p3,v3,p4,v4,p5,v5,p6,v6,p7,v7,p8,v8,p9,v9,p10,v10,p11,v11,p12,v12,p13,v13,p14,v14)
