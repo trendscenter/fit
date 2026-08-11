@@ -86,10 +86,11 @@ try
 catch
 end
 
+s_main_appdir = fileparts(which('fusion.m'));
 if isempty(which('ica_fuse_run_analysis.m'))
-    addpath(genpath(fileparts(which('fusion.m'))), '-end');
+    addpath(genpath(s_main_appdir), '-end');
 end
-
+ica_fuse_addpaths_common(); % add shared code with gift to path
 
 if length(varargin) == 1
     fusionType = varargin{1};

@@ -28,6 +28,7 @@ if ~exist('fusionFile', 'var')
     fusionFile = [];
 end
 
+ica_fuse_addpaths_common(); % add shared code with gift to path
 
 % DEFINE PARAMETERS THAT ARE GOING TO BE PLOTTED.
 % IN CASE OF BATCH ANALYSIS PARAMETERS WILL BE READ FROM
