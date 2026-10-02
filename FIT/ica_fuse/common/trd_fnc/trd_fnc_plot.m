@@ -1,4 +1,4 @@
-function [F,A,C,I] = trd_fnc_plot(FNC, CLIM, LABEL, RSN_I, F, T, sh, MOD, MOD_NAMES,excludeDiagonals)
+function [F,A,C,I] = trd_fnc_plot(FNC, CLIM, LABEL, RSN_I, F, T, sh, MOD, MOD_NAMES,excludeDiagonals, CMAP, TITLE)
 % [F,A,C,I] = trd_fnc_plot(FNC, CLIM, LABEL, RSN_I, F, T)
 % Moved from GIFT to common 7/27/26 Cyrus Eierud
 
@@ -11,6 +11,14 @@ cMOD = cumsum(MOD);
 
 if (~exist('MOD_NAMES', 'var'))
     MOD_NAMES = [];
+end
+
+if ~exist('CMAP', 'var')
+    CMAP = [];
+end
+
+if ~exist('TITLE', 'var')
+    TITLE = [];
 end
 
 if (~isempty(MOD_NAMES))
@@ -29,8 +37,6 @@ end
 if (~exist('excludeDiagonals', 'var'))
     excludeDiagonals = 1;
 end
-
-
 
 if isvector(FNC)
     FNC = trd_util_vec2mat(FNC, 1);
@@ -93,6 +99,10 @@ try
 catch
 end
 
+if ~isempty(TITLE)
+    title(sh, TITLE)
+end
+
 %% labeling
 if exist('LABEL', 'var') && ~isempty(LABEL)
     
@@ -122,8 +132,12 @@ end
 if exist('RSN_I', 'var') && ~isempty(RSN_I)
     hold on;
     
-    for ii = 1:length(RSN_I);
+    for ii = 1:length(RSN_I)
         T =text(ii,ii,LABEL{ii});
         set(T, 'Color', foregroundcolor, 'HorizontalAlignment', 'Center');
     end
+end
+
+if ~isempty(CMAP)
+    colormap(F, CMAP)
 end
