@@ -296,6 +296,10 @@ try
     displayParameters = get(handles, 'userdata');
     
     fusionFile = displayParameters.fusionFile;
+
+    tmp_fusion = load(fusionFile);
+    fnc_info.display_results = tmp_fusion.fusionInfo.setup_analysis.display_results;
+    clear tmp_fusion;
     
     % Number of groups and features
     numGroups = displayParameters.numGroups;
@@ -459,7 +463,8 @@ try
             'of feature ', feature_name], 'interp_title', ['Interp comp of ', feature_name], ...
             'input_files', feature_input_files, 'voxels', voxels, 'feature_info', featureInfo, ...
             'mask_ind', mask_ind(selectedFeatureVal(nOutputFiles)).ind, 'outputDir', outputDir, ...
-            'flip_analyze_images', flip_analyze_images, 'modality', deblank(modalities(selectedFeatureVal(nOutputFiles), :)));
+            'flip_analyze_images', flip_analyze_images, ...
+            'fnc_info', fnc_info, 'modality', deblank(modalities(selectedFeatureVal(nOutputFiles), :)));
         
         
         if ~isfield(displayParameters, 'text_left_right')
@@ -514,6 +519,10 @@ try
             else
                 outputData(nOutputFiles).CompData(nComp).textLeftRight = [];
             end
+
+            outputData(nOutputFiles).CompData(nComp).data = ...
+                squeeze(compData(nComp, :, :));
+
         end
         outputData(nOutputFiles).meanData = meanData;
         outputData(nOutputFiles).meanDataLegend = meanDataLegend;
@@ -568,6 +577,26 @@ try
                 outputData(nOutputFiles).CompData(nComp).maxInterval];
             plotData(countData).groupNames = '';
             plotData(countData).textLeftRight = outputData(nOutputFiles).CompData(nComp).textLeftRight;
+
+            if strcmpi(plotData(countData).plotType, 'fnc')
+                % FNC plotting information
+                plotData(countData).componentNames = ...
+                    cellstr(num2str([fnc_info.display_results.neuromark_opts.template1_names{:, 2}]'));
+            
+                plotData(countData).componentValues = ...
+                    [fnc_info.display_results.neuromark_opts.template1_names{:, 2}]';
+            
+                plotData(countData).networkNames = ...
+                    fnc_info.display_results.neuromark_opts.template1_names(:, 1)';
+            
+                plotData(countData).networkValues = cellfun(@numel, ...
+                 fnc_info.display_results.neuromark_opts.template1_names(:, 2))';
+
+                plotData(countData).CLIM = fnc_info.display_results.neuromark_opts.template1_CLIM;
+                plotData(countData).colorbarLabel = fnc_info.display_results.neuromark_opts.template1_colorbar_label;
+            
+            end
+
         end
         
     end

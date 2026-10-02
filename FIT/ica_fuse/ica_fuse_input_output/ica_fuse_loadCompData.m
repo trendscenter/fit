@@ -20,6 +20,7 @@ groupCompData = [];
 groupCompFiles = [];
 flip_analyze_images = [];
 modalityName = [];
+fnc_info = [];
 % Loop over number of arguments
 for ii = 1:2:nargin
     % Get the required vars
@@ -58,6 +59,8 @@ for ii = 1:2:nargin
         flip_analyze_images = varargin{ii + 1};
     elseif strcmpi(varargin{ii}, 'modality')
         modalityName = varargin{ii + 1};
+    elseif strcmpi(varargin{ii}, 'fnc_info')
+        fnc_info = varargin{ii + 1};
     end
     % end for getting the required vars
     
@@ -131,106 +134,128 @@ if strcmpi(extn, '.img') || strcmpi(extn, '.nii')
     
 else
     
+    if strcmpi(modalityName, 'fmri') && strcmpi(extn, '.asc')
+        % clues that this really is fnc. if not fnc gently pass to other
+        % (should be above)
+        % Where are the component names and domains
+        plotType = 'fnc';
+
+        % Convert loaded FNC representation to:
+        % [fusion component x FNC component x FNC component]
+        compData_unclean = ica_fuse_loadData(component_files(component_numbers, :));        
+        compData = squeeze(compData_unclean(:, 2, :));
+        compData = compData';
+        clear compData_unclean;
+        anatData = fnc_info;
+% 
+%         HInfo.componentNames  = featureInfo.componentNames;
+%         HInfo.componentValues = featureInfo.componentValues;
+%         HInfo.networkNames    = featureInfo.networkNames;
+%         HInfo.networkValues   = featureInfo.networkValues;
+%         HInfo.colorbarLabel   = 'Correlations (z)';
     
-    
-    plotType = 'timecourse';
-    
-    if (~isempty(modalityName) && strcmpi(modalityName, 'gene'))
-        plotType = 'SNP';
-    end
-    
-    % Treat the file as ascii
-    [compData] = ica_fuse_loadData(component_files(component_numbers, :));
-    
-    if (strcmpi(plotType, 'timecourse'))
+    else 
         
-        % Number of groups
-        numGroups = size(featureInfo.groupNames, 1);
+        plotType = 'timecourse';
         
-        % Number of subjects
-        numSubjects = featureInfo.numSubjects;
-        
-        % Input data
-        input_data = ica_fuse_loadData(inputFiles);
-        input_data = input_data(:, :, 1:numSubjects(1));
-        %input_data = ica_fuse_loadData(inputFiles(1:numSubjects(1), :));
-        
-        % Mean of Y data
-        meanData = mean(squeeze(input_data(mask_ind, 2, :)), 2);
-        
-        meanDataLegend{1} = ['Mean of ', deblank(featureInfo.groupNames(1, :))];
-        
-        clear input_data;
-        
-        % Interpolation factor
-        interpFactor = ceil(voxels / size(meanData, 1));
-        
-        if interpFactor ~= 0
-            % Resample mean data
-            meanData = ica_fuse_resample(meanData, voxels, size(meanData, 1));
-            
-            %%%%%%%%%%%% Resample component data %%%%%%%%%%%%%%%%%%
-            [compData] = ica_fuse_resampleCompData(compData, length(meanData), voxels, length(mask_ind));
-            
+        if (~isempty(modalityName) && strcmpi(modalityName, 'gene'))
+            plotType = 'SNP';
         end
         
-        % Replicate meanData over groups
-        meanData = repmat(meanData, 1, numGroups);
+        % Treat the file as ascii
+        [compData] = ica_fuse_loadData(component_files(component_numbers, :));
         
-        if ~isempty(groupCompFiles)
-            groupCompLegend{1} = ['Group ', deblank(featureInfo.groupNames(1, :))];
-            groupCompData = zeros([size(compData, 1), size(compData, 2), length(component_numbers), numGroups]);
-            if length(component_numbers) > 1 & numGroups > 1
-                %groupCompData(:, :, :, 1) = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
-                tempCompData = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
-                groupCompData(:, :, :, 1) = ica_fuse_resampleCompData(tempCompData, size(meanData, 1), voxels, ...
-                    length(mask_ind));
-                clear tempCompData;
+        if (strcmpi(plotType, 'timecourse'))
+            
+            % Number of groups
+            numGroups = size(featureInfo.groupNames, 1);
+            
+            % Number of subjects
+            numSubjects = featureInfo.numSubjects;
+            
+            % Input data
+            input_data = ica_fuse_loadData(inputFiles);
+            input_data = input_data(:, :, 1:numSubjects(1));
+            %input_data = ica_fuse_loadData(inputFiles(1:numSubjects(1), :));
+            
+            % Mean of Y data
+            meanData = mean(squeeze(input_data(mask_ind, 2, :)), 2);
+            
+            meanDataLegend{1} = ['Mean of ', deblank(featureInfo.groupNames(1, :))];
+            
+            clear input_data;
+            
+            % Interpolation factor
+            interpFactor = ceil(voxels / size(meanData, 1));
+            
+            if interpFactor ~= 0
+                % Resample mean data
+                meanData = ica_fuse_resample(meanData, voxels, size(meanData, 1));
                 
-            else
-                groupCompData = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
-                groupCompData = ica_fuse_resampleCompData(groupCompData, size(meanData, 1), voxels, length(mask_ind));
+                %%%%%%%%%%%% Resample component data %%%%%%%%%%%%%%%%%%
+                [compData] = ica_fuse_resampleCompData(compData, length(meanData), voxels, length(mask_ind));
+                
             end
-        end
-        
-        % check if the number of groups is greater than 1
-        if numGroups > 1
-            startInd = numSubjects(1) + 1;
-            % Loop over groups
-            for nn = 2:numGroups
-                endInd = sum(numSubjects(1:nn));
-                input_data = ica_fuse_loadData(inputFiles(startInd:endInd, :));
-                tempData = mean(squeeze(input_data(mask_ind, 2, :)), 2);
-                clear input_data;
-                if interpFactor ~= 0
-                    meanData(:, nn) = ica_fuse_resample(tempData, voxels, size(tempData, 1));
-                end
-                clear tempData;
-                meanDataLegend{nn} = ['Mean of ', deblank(featureInfo.groupNames(nn, :))];
-                if ~isempty(groupCompFiles)
-                    tempCompData = ica_fuse_loadData(str2mat(groupCompFiles(nn).comp.name), component_numbers);
-                    groupCompData(:, :, :, nn) = ica_fuse_resampleCompData(tempCompData, size(meanData, 1), voxels, ...
+            
+            % Replicate meanData over groups
+            meanData = repmat(meanData, 1, numGroups);
+            
+            if ~isempty(groupCompFiles)
+                groupCompLegend{1} = ['Group ', deblank(featureInfo.groupNames(1, :))];
+                groupCompData = zeros([size(compData, 1), size(compData, 2), length(component_numbers), numGroups]);
+                if length(component_numbers) > 1 & numGroups > 1
+                    %groupCompData(:, :, :, 1) = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
+                    tempCompData = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
+                    groupCompData(:, :, :, 1) = ica_fuse_resampleCompData(tempCompData, size(meanData, 1), voxels, ...
                         length(mask_ind));
                     clear tempCompData;
-                    %groupCompData(:, :, :, nn) = ica_fuse_loadData(str2mat(groupCompFiles(nn).comp.name), ...
-                    %    component_numbers);
-                    groupCompLegend{nn} = ['Group ', deblank(featureInfo.groupNames(nn, :))];
+                    
+                else
+                    groupCompData = ica_fuse_loadData(str2mat(groupCompFiles(1).comp.name), component_numbers);
+                    groupCompData = ica_fuse_resampleCompData(groupCompData, size(meanData, 1), voxels, length(mask_ind));
                 end
-                startInd = endInd + 1;
             end
-            % End loop over groups
+            
+            % check if the number of groups is greater than 1
+            if numGroups > 1
+                startInd = numSubjects(1) + 1;
+                % Loop over groups
+                for nn = 2:numGroups
+                    endInd = sum(numSubjects(1:nn));
+                    input_data = ica_fuse_loadData(inputFiles(startInd:endInd, :));
+                    tempData = mean(squeeze(input_data(mask_ind, 2, :)), 2);
+                    clear input_data;
+                    if interpFactor ~= 0
+                        meanData(:, nn) = ica_fuse_resample(tempData, voxels, size(tempData, 1));
+                    end
+                    clear tempData;
+                    meanDataLegend{nn} = ['Mean of ', deblank(featureInfo.groupNames(nn, :))];
+                    if ~isempty(groupCompFiles)
+                        tempCompData = ica_fuse_loadData(str2mat(groupCompFiles(nn).comp.name), component_numbers);
+                        groupCompData(:, :, :, nn) = ica_fuse_resampleCompData(tempCompData, size(meanData, 1), voxels, ...
+                            length(mask_ind));
+                        clear tempCompData;
+                        %groupCompData(:, :, :, nn) = ica_fuse_loadData(str2mat(groupCompFiles(nn).comp.name), ...
+                        %    component_numbers);
+                        groupCompLegend{nn} = ['Group ', deblank(featureInfo.groupNames(nn, :))];
+                    end
+                    startInd = endInd + 1;
+                end
+                % End loop over groups
+            end
+            % End for checking if the number of groups is greater than 1
+            
+            % Get the data for the selected component numbers
+            %compData = compData(:, :, component_numbers);
+            % Make component number as the first dimension
+            compData = permute(compData, [3, 1, 2]);
+            
+        else
+            compData = permute(compData, [3, 1, 2]);
+            compData = compData(:, :, 2);
+            
         end
-        % End for checking if the number of groups is greater than 1
-        
-        % Get the data for the selected component numbers
-        %compData = compData(:, :, component_numbers);
-        % Make component number as the first dimension
-        compData = permute(compData, [3, 1, 2]);
-        
-    else
-        compData = permute(compData, [3, 1, 2]);
-        compData = compData(:, :, 2);
-        
+
     end
     
 end

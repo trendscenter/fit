@@ -1,8 +1,8 @@
 %%%%%%% INPUT FILE FOR RUNNING DYNAMIC FUSION USING A BATCH SCRIPT %%%%%%%
 % The input parameters are defined below. Please use full path for files or directory
 % TReNDS 071326 Cyrus Eierud
-% Syntax: ica_fuse_batch_file('input_batch_dfusion_state1') or
-%  ica_fuse_batch_file_dfuse_final('input_batch_dfusion_state1')
+% Syntax: ica_fuse_batch_file('input_batch_dfusion_state1.m') or
+%  ica_fuse_batch_file_dfuse_final('input_batch_dfusion_state1.m')
 % For more information how to run this script see ica_fuse_batch_file_dfuse_final.m
 
 %% Output directory
@@ -19,16 +19,7 @@ prefix = 'dynamicFusion_dFNC_state1_GMV_15comp';
 
 %% Mask file
 % 1. Default mask - Specify empty value like [].
-%
-% 2. When specifying maskFiles enter in a cell array. For each feature there
-% is a mask. 
-% fMRI - full file path
-% sMRI - full file path
-% EEG - indices like '50:500'
-% Note:
-% To replicate the same mask over features use repmat for example
-% maskFile =
-% repmat({'I:\Fusion_Data\fmri_fmri\SZ\s271(201)\targets_ME.img'}, 2, 1);
+% Currently only works with default mask for all modalities
 maskFile = [];
 
 %% Normalization
@@ -137,3 +128,18 @@ num_ica_runs = 100;
 % Available algorithms are Infomax, FastICA, ...
 algorithm = 1;
 
+% Network names and components may be used in the plots (only fMRI FNC part). 
+% You can specify network names and components within each network and tie 
+% these network labels to a modality index (at least 1 or 2).
+% Below is an example from neuromark template labels.
+%display_results.neuromark_opts.template1_CLIM = [-1,1];
+display_results.neuromark_opts.template1_CLIM = 'auto';
+display_results.neuromark_opts.template1_colorbar_label = 'Correlation (z)';
+display_results.neuromark_opts.template1_modality = 2;
+display_results.neuromark_opts.template1_names = { 'SC', (1:5);                    
+                                    'AU', (6:7);                  
+                                    'SM', (8:16);  
+                                    'VI', (17:25); 
+                                    'CC', (26:42);      
+                                    'DM', (43:49);
+                                    'CB', (50:53)};

@@ -134,6 +134,12 @@ function ica_fuse_batch_file_dfuse_final(inputFile)
 % The final component matching and state ordering are stored in
 %
 %      dynamicFusion_postprocessing_component_matches_*.mat
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%      This template may be used as the core for following 
+%      study by Duda & Calhoun, 2024, titled:
+%      Functionally-Adaptive Gray and White Matter Structural 
+%      Basis Sets via Dynamic Fusion of Multimodal MRI Data. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [pathstr, fName, extn] = fileparts(inputFile);
 if isempty(pathstr)
@@ -150,7 +156,7 @@ eval(fName);
 oc_dfit = ica_fuse_cls_dfit(inputFile, outputDir); % Needed to check if used wants dfit
 b_dfit_selected_in_batch_or_gui = oc_dfit.get_b_dfit_selected_in_batch_or_gui();
 if b_dfit_selected_in_batch_or_gui
-    n_ret = oc_dfit.dyn_matching_components_across_states(); %dfit selected and engaged
+    n_ret = oc_dfit.dyn_matching_components_across_states(inputFile); %dfit selected and engaged
 else
     error('Missing information for ica_fuse_batch_file_dfuse_final');
 end

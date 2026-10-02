@@ -102,14 +102,12 @@ classdef ica_fuse_cls_dfit
             end               
         end
 
-        function n_ret = dyn_matching_components_across_states(obj)
+        function n_ret = dyn_matching_components_across_states(obj, s_file_input)
             n_ret = 0;
             n_states = size(obj.clusterInfo.Call,1);
             
             tmp_files = dir(fullfile(obj.s_fit_outputdir, '*_state1_*comp_br_comb_1.mat'));                                 
             s_tmp = load([tmp_files(1).folder filesep tmp_files(1).name]);
-% %             clear tmp_files
-% %             [obj.s_prefix_gift  '_state' num2str(1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc']
             
             n_comps = size(s_tmp.icasig,1);
             match_modality = "struct"; % options: "struct", "dFNC"
@@ -141,27 +139,19 @@ classdef ica_fuse_cls_dfit
                     for comp1 = 1:n_comps
 
                         % feature_2 is the structural feature based on our batch file implementation
-                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.asc'];
-                        tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                       
-                        if ~(size(tmp_files,1) == 1)
-                            error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
-                        end         
-%                         s1 = load(append("demo_results/dynamicFusion_demo_dFNC_state",string(state1),"_GMV_5comp_joint_comp_ica_feature_2_", sprintf('%03d', comp1),".asc"));
-                        s1 = load([tmp_files(1).folder filesep tmp_files(1).name]);
+                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp1) '.*'];
+                        tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                               
+                        s1 = file2vector(obj, 2, tmp_files, s_file_input, s_file_wild_card);
                         % loop through all comps in state 2
                         for comp2 = 1:n_comps
-                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp2) '.asc'];
-                            tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                            
-                            if ~(size(tmp_files,1) == 1)
-                                error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
-                            end                        
-%                             s2 = load(append("demo_results/dynamicFusion_demo_dFNC_state",string(state2),"_GMV_5comp_joint_comp_ica_feature_2_", sprintf('%03d', comp2),".asc"));
-                            s2 = load([tmp_files(1).folder filesep tmp_files(1).name]);
+                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_2_' sprintf('%03d', comp2) '.*'];
+                            tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                                 
+                            s2 = file2vector(obj, 2, tmp_files, s_file_input, s_file_wild_card);
 
                             disp(append("Computing state matches: State ", string(state1)," Comp ", string(comp1), " & State ", string(state2), " Comp ", string(comp2)));
 
                             % compute the correlation
-                            c = corrcoef(s1(:,2), s2(:,2));
+                            c = corrcoef(s1(:), s2(:));
 
                             % fill in correlation in corrs matrix
                             corrs(comp1,comp2) = c(1,2);
@@ -201,8 +191,32 @@ classdef ica_fuse_cls_dfit
 
                 end
 
+                comp_matches_corrs_table = array2table( ...
+                    matched_corrs, ...
+                    'VariableNames', compose("FusionIC%d", 1:n_comps));
+                
+                comp_matches_corrs_table = addvars( ...
+                    comp_matches_corrs_table, ...
+                    compose("State%d_vs_State%d", state_pairs(:,1), state_pairs(:,2)), ...
+                    'Before', 1, ...
+                    'NewVariableNames', "state_a_vs_state_b");
+
+                comp_matches_a_table = array2table( ...
+                        comp_matches(:,:,1), ...
+                        'VariableNames', compose("FusionIC%d", 1:n_comps), ...
+                        'RowNames', compose("State%d_vs_State%d", ...
+                            state_pairs(:,1), state_pairs(:,2)));
+    
+                comp_matches_b_table = array2table( ...
+                    comp_matches(:,:,2), ...
+                    'VariableNames', compose("FusionIC%d", 1:n_comps), ...
+                    'RowNames', compose("State%d_vs_State%d", ...
+                        state_pairs(:,1), state_pairs(:,2)));  
+
+                cell_feat_names = ica_fuse_read_variables(s_file_input, 'featureNames', {'cell'});
+
                 % save results
-                save(append(outpath,"dynamicFusion_postprocessing_component_matches_struct.mat"), "comp_matches", "matched_corrs");
+                save(append(outpath,['dynamicFusion_postprocessing_component_matches_' cell_feat_names.featureNames{2} '.mat']), "comp_matches_corrs_table", "comp_matches_a_table", "comp_matches_b_table");
 
             % option 2 - find cross-fusion component matches based on dFNC
             % not common - we don't expect much commonality between the dFNC components
@@ -219,37 +233,26 @@ classdef ica_fuse_cls_dfit
                     for comp1 = 1:n_comps
 
                         % feature_2 is the structural feature based on our batch file implementation
-                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp1) '.asc'];
-                        tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                       
-                        if ~(size(tmp_files,1) == 1)
-                            error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
-                        end                        
-                        s1 = load([tmp_files(1).folder filesep tmp_files(1).name]);
+                        clear tmp_files; s_file_wild_card=['*_state' num2str(state1) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp1) '.*'];
+                        tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                                                 
+                        s1 = file2vector(obj, 1, tmp_files, s_file_input, s_file_wild_card);
+
                         % loop through all comps in state 2
                         for comp2 = 1:n_comps
-                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp2) '.asc'];
+                            clear tmp_files; s_file_wild_card=['*_state' num2str(state2) '_*_' num2str(n_comps) 'comp_joint_comp_ica_feature_1_' sprintf('%03d', comp2) '.*'];
                             tmp_files = dir(fullfile(obj.s_fit_outputdir, s_file_wild_card));                                            
-                            if ~(size(tmp_files,1) == 1)
-                                error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
-                            end                        
-                            s2 = load([tmp_files(1).folder filesep tmp_files(1).name]);
+                            s2 = file2vector(obj, 1, tmp_files, s_file_input, s_file_wild_card);
 
                             disp(append("Computing state matches: State ", string(state1)," Comp ", string(comp1), " & State ", string(state2), " Comp ", string(comp2)));
 
                             % compute the correlation
-                            c = corrcoef(s1(:,2), s2(:,2));
+                            c = corrcoef(s1(:), s2(:));
 
                             % fill in correlation in corrs matrix
                             corrs(comp1,comp2) = c(1,2);
 
                         end
                     end
-
-            
-            
-            
-            
-            
 
                     % initializations
                     idxs = zeros(n_comps,2);
@@ -283,11 +286,34 @@ classdef ica_fuse_cls_dfit
 
                 end
 
+
+                comp_matches_corrs_table = array2table( ...
+                    matched_corrs, ...
+                    'VariableNames', compose("FusionIC%d", 1:n_comps));
+                
+                comp_matches_corrs_table = addvars( ...
+                    comp_matches_corrs_table, ...
+                    compose("State%d_vs_State%d", state_pairs(:,1), state_pairs(:,2)), ...
+                    'Before', 1, ...
+                    'NewVariableNames', "state_a_vs_state_b");
+
+                comp_matches_a_table = array2table( ...
+                        comp_matches(:,:,1), ...
+                        'VariableNames', compose("FusionIC%d", 1:n_comps), ...
+                        'RowNames', compose("State%d_vs_State%d", ...
+                            state_pairs(:,1), state_pairs(:,2)));
+    
+                comp_matches_b_table = array2table( ...
+                    comp_matches(:,:,2), ...
+                    'VariableNames', compose("FusionIC%d", 1:n_comps), ...
+                    'RowNames', compose("State%d_vs_State%d", ...
+                        state_pairs(:,1), state_pairs(:,2)));       
+
                 % save results
-                save(append(outpath,"dynamicFusion_postprocessing_component_matches_dFNC.mat"), "comp_matches", "matched_corrs");
+                save(append(outpath,['dynamicFusion_postprocessing_component_matches_' cell_feat_names.featureNames{1} '.mat']), "comp_matches_corrs_table", "comp_matches_a_table", "comp_matches_b_table");
                 disp('Files with info about what components match across states are:');
-                disp(append(outpath,"dynamicFusion_postprocessing_component_matches_struct.mat"));
-                disp(append(outpath,"dynamicFusion_postprocessing_component_matches_dFNC.mat"));
+                disp(append(outpath,['dynamicFusion_postprocessing_component_matches_' cell_feat_names.featureNames{1} '.mat']));
+                disp(append(outpath,['dynamicFusion_postprocessing_component_matches_' cell_feat_names.featureNames{2} '.mat']));
                 disp('All steps of Dynamic Fusion are complete!')
                 n_ret = 1;
         end        
@@ -300,7 +326,35 @@ classdef ica_fuse_cls_dfit
         function val = get_b_dfit_selected_in_batch_or_gui(obj)
             % Method to get Value
             val = obj.b_dfit_selected_in_batch_or_gui;
-        end        
+        end       
+
+        function ix_ica_vector = file2vector(obj, n_feature, s_file_ims_or_asc, s_file_input, s_file_wild_card)
+            % Method to turn ascii or analyze image into a vector
+            % Or just work a flat ascii file as vector
+
+            stru_prefix_dfnc = ica_fuse_read_variables(s_file_input, 'prefix', {'character'});
+            [s_path, ~, ~] = fileparts(s_file_input);
+
+            if (size(s_file_ims_or_asc,1) == 2)
+                if strcmpi('.hdr', s_file_ims_or_asc(1).name(end-3:end)) || strcmpi('.img', s_file_ims_or_asc(1).name(end-3:end))
+                    % analyze format detected
+                    load([s_path filesep stru_prefix_dfnc.prefix '_ica_fusion.mat']); % get fusionInfo
+                    ix_ica_vector_tmp=icatb_spm_read_vols(icatb_spm_vol([s_file_ims_or_asc(1).folder filesep s_file_ims_or_asc(1).name]));
+                    ix_mask=find(fusionInfo.setup_analysis.mask_ind(n_feature).ind(:));
+                    ix_ica_vector = ix_ica_vector_tmp(ix_mask);
+                    clear ix_ica_vector_tmp;
+                end
+                
+            elseif (size(s_file_ims_or_asc,1) == 1)
+                ix_ica_vector_tmp = load([s_file_ims_or_asc(1).folder filesep s_file_ims_or_asc(1).name]);
+                ix_ica_vector = ix_ica_vector_tmp(:,2); %Strip from first column that is junk
+                clear s1_tmp;
+            else
+                error(['Error in ica_fuse_cls_dfit: exactly one file should match ' obj.s_fit_outputdir filesep s_file_wild_card]);
+            end  
+        end  
+               
+
     end
 end
 

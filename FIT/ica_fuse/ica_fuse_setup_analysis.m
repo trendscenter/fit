@@ -28,8 +28,6 @@ if ~exist('fusionFile', 'var')
     fusionFile = [];
 end
 
-ica_fuse_addpaths_common(); % add shared code with gift to path
-
 % DEFINE PARAMETERS THAT ARE GOING TO BE PLOTTED.
 % IN CASE OF BATCH ANALYSIS PARAMETERS WILL BE READ FROM
 % THE FILE AND THE FUNCTION CALLBACKS WILL BE EXECUTED AUTOMATICALLY
@@ -504,7 +502,6 @@ if getMask == 2
                             featureNames{nn}, inputFile);
                     end
                 end
-                
             else
                 % Consider the mask as a file
                 if exist(maskFile{nn}, 'file') ~= 2
@@ -1055,6 +1052,10 @@ try
     fusionInfo.setup_analysis.newDims = newDims;
     
     clear stackInfo;
+
+    % Add possible neuromark labels
+    stru_tmp = ica_fuse_read_variables(inputFile, 'display_results', {'struct'});
+    fusionInfo.setup_analysis.display_results = stru_tmp.display_results;
     
     fusionInfo.run_analysis.isInitialized = 0;
     
