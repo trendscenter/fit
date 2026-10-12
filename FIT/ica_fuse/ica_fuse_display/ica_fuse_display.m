@@ -296,10 +296,16 @@ try
     displayParameters = get(handles, 'userdata');
     
     fusionFile = displayParameters.fusionFile;
-
-    tmp_fusion = load(fusionFile);
-    fnc_info.display_results = tmp_fusion.fusionInfo.setup_analysis.display_results;
-    clear tmp_fusion;
+    
+    % For reading FNC labes (for dFNC fusion)
+    try
+        tmp_fusion = load(fusionFile);
+        fnc_info.display_results = tmp_fusion.fusionInfo.setup_analysis.display_results;
+        clear tmp_fusion;
+    catch
+        % In case there are no FNC labels to read
+        fnc_info.display_results = [];
+    end
     
     % Number of groups and features
     numGroups = displayParameters.numGroups;

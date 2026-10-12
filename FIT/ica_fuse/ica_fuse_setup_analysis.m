@@ -1053,9 +1053,12 @@ try
     
     clear stackInfo;
 
-    % Add possible neuromark labels
-    stru_tmp = ica_fuse_read_variables(inputFile, 'display_results', {'struct'});
-    fusionInfo.setup_analysis.display_results = stru_tmp.display_results;
+    % Try to add possible neuromark labels (if they exists)
+    try
+        stru_tmp = ica_fuse_read_variables(inputFile, 'display_results', {'struct'});
+        fusionInfo.setup_analysis.display_results = stru_tmp.display_results;
+    catch
+    end
     
     fusionInfo.run_analysis.isInitialized = 0;
     
